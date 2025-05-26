@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="user-service" />
+        <module name="api-documentation-service" />
+        <module name="chat-websocket-service" />
+        <module name="message-service" />
+        <module name="discovery-service" />
+        <module name="auth-service" />
+        <module name="keycloak-service" />
+        <module name="conversation-service" />
+        <module name="products-service (1)" />
+        <module name="api-gateway" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="chat-job" target="17" />
+      <module name="chat-service" target="17" />
+      <module name="kafka-service" target="17" />
+      <module name="keycloak-custom-providers" target="17" />
+      <module name="limits-service" target="17" />
+      <module name="microservices-common" target="21" />
+      <module name="public-service" target="17" />
+      <module name="redis-service" target="17" />
+      <module name="spring-cloud-config-server" target="17" />
+      <module name="storage-service" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="api-documentation-service" options="-parameters" />
+      <module name="api-gateway" options="-parameters" />
+      <module name="auth-service" options="-parameters" />
+      <module name="chat-job" options="-parameters" />
+      <module name="chat-service" options="-parameters" />
+      <module name="chat-websocket-service" options="-parameters" />
+      <module name="conversation-service" options="-parameters" />
+      <module name="discovery-service" options="-parameters" />
+      <module name="kafka-service" options="-parameters" />
+      <module name="keycloak-custom-providers" options="-parameters" />
+      <module name="keycloak-service" options="-parameters" />
+      <module name="limits-service" options="-parameters" />
+      <module name="message-service" options="-parameters" />
+      <module name="microservices-common" options="-parameters" />
+      <module name="public-service" options="-parameters" />
+      <module name="redis-service" options="-parameters" />
+      <module name="spring-cloud-config-server" options="-parameters" />
+      <module name="storage-service" options="-parameters" />
+      <module name="user-service" options="-parameters" />
+    </option>
+  </component>
+</project>

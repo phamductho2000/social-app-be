@@ -1,0 +1,25 @@
+
+spring:
+  application:
+    name: category-service
+  data:
+    mongodb:
+      #      authentication-database: admin
+      #      host: localhost
+      #      username: root
+      #      password: root
+      #      database: product-db
+      #      port: 27017
+      uri: mongodb://localhost:27017/category-db
+server:
+  port: 0
+  forward-headers-strategy: framework
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+#springdoc:
+#  cache:
+#    disabled: true

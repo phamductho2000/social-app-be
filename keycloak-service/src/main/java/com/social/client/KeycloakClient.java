@@ -1,0 +1,15 @@
+package com.social.client;
+
+import com.social.model.AccessTokenModel;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import java.util.Map;
+
+@FeignClient(name = "keycloak", url = "http://localhost:8080")
+public interface KeycloakClient {
+
+    @PostMapping(value = "/realms/app-chat/protocol/openid-connect/token", consumes = "application/x-www-form-urlencoded")
+    ResponseEntity<AccessTokenModel> login(Map<String, ?> headers);
+}

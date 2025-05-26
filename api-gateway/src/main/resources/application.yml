@@ -1,0 +1,80 @@
+server:
+  forward-headers-strategy: framework
+  port: 9000
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+#      forwarded-headers-strategy: framework
+      discovery:
+        locator:
+          enabled: true
+      routes:
+#        - id: public-service
+#          uri: lb://public-service
+#          predicates:
+#            - Path=/api/public/**
+#
+#        - id: product-service
+#          uri: lb://product-service
+#          predicates:
+#            - Path=/api/product/**
+#
+#        - id: storage-service
+#          uri: lb://storage-service
+#          predicates:
+#            - Path=/api/storage/**
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/user/**
+
+        - id: conversation-service
+          uri: lb://conversation-service
+          predicates:
+            - Path=/api/conversation/**
+
+        - id: chat-websocket-service
+          uri: lb://chat-websocket-service
+          predicates:
+            - Path=/ws/**
+          filters:
+            - PreserveHostHeader=true
+
+        - id: message-service
+          uri: lb://message-service
+          predicates:
+            - Path=/api/message/**
+
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+
+        - id: keycloak-service
+          uri: lb://keycloak-service
+          predicates:
+            - Path=/api/keycloak/**
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    root: DEBUG
+    org:
+      springframework:
+        cloud:
+          gateway:
+            route:
+              org.springframework.cloud.gateway.route.RouteDefinitionLocator: DEBUG
+      org:
+        springframework:
+          cloud:
+            gateway: DEBUG
