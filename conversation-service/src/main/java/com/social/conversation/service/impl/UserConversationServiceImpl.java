@@ -1,14 +1,18 @@
 package com.social.conversation.service.impl;
 
+import com.social.common.exception.AppException;
+import com.social.common.page.CustomPageScroll;
+import com.social.common.util.QueryBuilder;
 import com.social.conversation.client.UserClient;
 import com.social.conversation.domain.Message;
 import com.social.conversation.domain.UserConversation;
+import com.social.conversation.dto.request.SearchConversationRequestDto;
 import com.social.conversation.dto.response.MessageResDTO;
 import com.social.conversation.dto.response.UserConversationResDTO;
 import com.social.conversation.dto.response.UserResponseDTO;
 import com.social.conversation.exception.ChatServiceException;
-import com.social.dto.ApiResponse;
-import com.social.log.Logger;
+import com.social.common.dto.ApiResponse;
+import com.social.common.log.Logger;
 import com.social.conversation.repo.UserConversationRepository;
 import com.social.conversation.service.ParticipantService;
 import com.social.conversation.service.UserConversationService;
@@ -16,10 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
@@ -31,10 +32,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.social.common.util.AppUtils.decodeSearchAfter;
+import static com.social.common.util.AppUtils.encodeSearchAfter;
 
 @Slf4j
 @Service
@@ -63,7 +65,7 @@ public class UserConversationServiceImpl implements UserConversationService {
             throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
 
-        List<UserConversation> data = genDataDirect(participantIds, conversationId);
+        List<UserConversation> data = genDataDirect(participantIds, conversationId, type);
 
         return userConversationsRepository.saveAll(data)
                 .stream()
@@ -71,51 +73,7 @@ public class UserConversationServiceImpl implements UserConversationService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public Page<UserConversationResDTO> getUserConversations(String userId, Pageable pageable) {
-
-        MatchOperation matchParticipants = Aggregation.match(Criteria.where("userId").is(userId));
-
-        Aggregation aggregation = Aggregation.newAggregation(
-                matchParticipants,
-                Aggregation.sort(Sort.by(Sort.Direction.DESC, "updatedAt")),
-                Aggregation.skip((long) pageable.getPageNumber() * pageable.getPageSize()),
-                Aggregation.limit(pageable.getPageSize())
-        );
-
-        AggregationResults<UserConversationResDTO> aggregationResults = mongoTemplate.aggregate(aggregation, "user_conversations", UserConversationResDTO.class);
-
-        List<UserConversationResDTO> results = aggregationResults.getMappedResults();
-
-        long total = mongoTemplate.count(new Query(Criteria.where("userId").is(userId)), "user_conversations");
-
-        return new PageImpl<>(results, pageable, total);
-    }
-
-    @Override
-    public void handleNewMessage(MessageResDTO messageResDTO) throws ChatServiceException {
-        if (Objects.isNull(messageResDTO)) {
-            throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
-        }
-        String conversationId = messageResDTO.getConversationId();
-        Set<Object> userIds = redisTemplate.opsForSet().members(String.format("CONNECT_CONVERSATION:%s", conversationId));
-        List<UserConversation> conversations = userConversationsRepository.findAllByConversationId(conversationId);
-        List<UserConversation> saves = conversations.stream().peek(conversation -> {
-            Message message = Message.builder()
-                    .content(messageResDTO.getContent())
-                    .senderId(messageResDTO.getSenderId())
-                    .timestamp(messageResDTO.getCreatedAt())
-                    .build();
-            conversation.setLastMessage(message);
-            if (!CollectionUtils.isEmpty(userIds)) {
-                int count = conversation.getUnreadCount();
-                conversation.setUnreadCount(!userIds.contains(messageResDTO.getSenderId()) ? count + 1 : count);
-            }
-        }).toList();
-        userConversationsRepository.saveAll(saves);
-    }
-
-    private List<UserConversation> genDataDirect(List<String> participantIds, String conversationId) throws ChatServiceException {
+    private List<UserConversation> genDataDirect(List<String> participantIds, String conversationId, String type) throws ChatServiceException {
         ApiResponse<List<UserResponseDTO>> response = userClient.getUsersByIds(participantIds);
         if (!response.isSuccess()) {
             throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
@@ -129,9 +87,67 @@ public class UserConversationServiceImpl implements UserConversationService {
                     .name(recipient.getFullName())
                     .avatar(recipient.getAvatar())
                     .conversationId(conversationId)
-                    .type("DIRECT")
+                    .type(type)
                     .unreadCount(0)
                     .build();
         }).toList();
+    }
+
+    @Override
+    public CustomPageScroll<UserConversationResDTO> search(SearchConversationRequestDto request) throws AppException {
+
+        if (null == request) {
+            throw new AppException("Payload empty", "PAYLOAD_EMPTY");
+        }
+
+        ScrollPosition scrollPosition = ScrollPosition.keyset();
+        Map<String, Object> extendData = new HashMap<>();
+
+        if (StringUtils.isNotEmpty(request.getSearchAfter())) {
+            scrollPosition = decodeSearchAfter(request.getSearchAfter());
+        }
+
+        Query query = QueryBuilder.builder()
+                .regex("fullName", request.getSearchValue())
+                .eq("userId", logger.getUserId())
+                .build()
+                .limit(request.getLimit())
+                .with(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .with(scrollPosition);
+
+        Window<UserConversation> result = mongoTemplate.scroll(query, UserConversation.class);
+
+        if (result.hasNext()) {
+            scrollPosition = result.positionAt(result.size() - 1);
+            extendData.put("searchAfter", encodeSearchAfter(scrollPosition));
+        }
+
+        return CustomPageScroll.buildPage(result.getContent()
+                        .stream().map(e -> mapper.map(e, UserConversationResDTO.class))
+                        .toList(),
+                result.size(), extendData);
+    }
+
+    @Override
+    public void handleNewMessage(MessageResDTO request) throws ChatServiceException {
+        if (Objects.isNull(request)) {
+            throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
+        }
+        String conversationId = request.getConversationId();
+        Set<Object> userIds = redisTemplate.opsForSet().members(String.format("CONNECT_CONVERSATION:%s", conversationId));
+        List<UserConversation> conversations = userConversationsRepository.findAllByConversationId(conversationId);
+        List<UserConversation> saves = conversations.stream().peek(conversation -> {
+            Message message = Message.builder()
+                    .content(request.getContent())
+                    .senderId(request.getSenderId())
+                    .timestamp(request.getCreatedAt())
+                    .build();
+            conversation.setLastMessage(message);
+            if (!CollectionUtils.isEmpty(userIds)) {
+                int count = conversation.getUnreadCount();
+                conversation.setUnreadCount(!userIds.contains(request.getSenderId()) ? count + 1 : count);
+            }
+        }).toList();
+        userConversationsRepository.saveAll(saves);
     }
 }

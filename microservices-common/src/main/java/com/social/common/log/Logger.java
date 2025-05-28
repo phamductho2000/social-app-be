@@ -9,7 +9,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.social.common.constants.CommonConstants.HEADER_USERNAME;
+import static com.social.common.constants.CommonConstants.HEADER_USER_NAME;
 import static com.social.common.constants.CommonConstants.HEADER_USER_ID;
 
 @Component
@@ -36,5 +36,5 @@ public class Logger {
 
     public String getUserId() {return (String) this.header.get(HEADER_USER_ID);}
 
-    public String getUserName() {return (String) this.header.get(HEADER_USERNAME);}
+    public String getUserName() {return (String) this.header.get(HEADER_USER_NAME);}
 }

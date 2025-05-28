@@ -1,24 +1,26 @@
 package com.social.conversation.controller;
 
+import com.social.common.dto.ApiResponse;
+import com.social.common.exception.AppException;
+import com.social.common.page.CustomPageScroll;
+import com.social.conversation.dto.request.SearchConversationRequestDto;
 import com.social.conversation.dto.response.UserConversationResDTO;
-import com.social.conversation.exception.ChatServiceException;
 import com.social.conversation.service.UserConversationService;
-import com.social.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/conversation")
+@RequestMapping("/api/conversation/user-conversation")
 @RequiredArgsConstructor
 public class UserConversationController {
 
     private final UserConversationService userConversationService;
 
-    @PostMapping("/get-user-conversations/{userId}")
-    public ApiResponse<Page<UserConversationResDTO>> getUserConversations(@PathVariable String userId, @ParameterObject Pageable pageable) throws ChatServiceException {
-        return ApiResponse.success(userConversationService.getUserConversations(userId, pageable));
+    @PostMapping("/search")
+    public ApiResponse<CustomPageScroll<UserConversationResDTO>> search(@RequestBody SearchConversationRequestDto request) throws AppException {
+        return ApiResponse.success(userConversationService.search(request));
     }
 }

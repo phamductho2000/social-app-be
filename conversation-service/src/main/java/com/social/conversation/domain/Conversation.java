@@ -1,13 +1,13 @@
 package com.social.conversation.domain;
 
 import com.social.conversation.constants.ConversationType;
-import com.social.domain.BaseDomain;
+import com.social.common.domain.BaseDomain;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @EqualsAndHashCode(callSuper = true)
-@Document(value="conversations")
+@Document(value="conversation")
 @Data
 @Builder
 @AllArgsConstructor

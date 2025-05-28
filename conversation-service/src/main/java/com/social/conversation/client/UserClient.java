@@ -1,7 +1,7 @@
 package com.social.conversation.client;
 
 import com.social.conversation.dto.response.UserResponseDTO;
-import com.social.dto.ApiResponse;
+import com.social.common.dto.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -12,9 +12,9 @@ import com.social.conversation.repo.ConversationRepository;
 import com.social.conversation.service.ConversationService;
 import com.social.conversation.service.ParticipantService;
 import com.social.conversation.service.UserConversationService;
-import com.social.dto.ApiResponse;
-import com.social.dto.FilterRequest;
-import com.social.log.Logger;
+import com.social.common.dto.ApiResponse;
+import com.social.common.dto.FilterRequest;
+import com.social.common.log.Logger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -30,7 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.social.util.SpecificationUtil.createSpecification;
+import static com.social.common.util.SpecificationUtil.createSpecification;
+
 
 @Slf4j
 @Service
@@ -53,23 +54,24 @@ public class ConversationServiceImpl implements ConversationService {
     private final Logger logger;
 
     @Override
-    public ConversationResDTO saveConversation(ConversationReqDTO req) throws ChatServiceException {
-        log.info("saveConversation: {}", req);
-        if (null == req) {
+    public ConversationResDTO saveConversation(ConversationReqDTO request) throws ChatServiceException {
+        log.info("saveConversation: {}", request);
+        if (null == request) {
             throw new ChatServiceException("ConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
-        Conversation conversation = mapper.map(req, Conversation.class);
-        if (req.getParticipantIds().size() == 1) {
+        Conversation conversation = mapper.map(request, Conversation.class);
+        if (request.getParticipantIds().size() == 1) {
             conversation.setType(ConversationType.DIRECT);
         } else {
             conversation.setType(ConversationType.GROUP);
         }
         conversation = conversationRepository.save(conversation);
         ConversationResDTO result = mapper.map(conversation, ConversationResDTO.class);
-        result.setName(req.getName());
-        result.setAvatar(req.getAvatar());
-        participantService.saveAll(req.getParticipantIds(), result.getId(), result.getType());
-        userConversationService.saveAll(req.getParticipantIds(), result.getId(), result.getType());
+        result.setName(request.getName());
+        result.setAvatar(request.getAvatar());
+        request.getParticipantIds().add(logger.getUserId());
+        participantService.saveAll(request.getParticipantIds(), result.getId(), result.getType());
+        userConversationService.saveAll(request.getParticipantIds(), result.getId(), result.getType());
         return result;
     }
 
@@ -97,17 +99,21 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public ConversationResDTO createConversation(ConversationReqDTO req) throws ChatServiceException {
-        if (null == req) {
+    public ConversationResDTO createConversation(ConversationReqDTO request) throws ChatServiceException {
+        if (null == request) {
             throw new ChatServiceException("ConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
-        ConversationResDTO conversation = saveConversation(req);
-        MessageReqDTO messageReqDTO = req.getMessage();
+        ConversationResDTO conversation = saveConversation(request);
+
+        MessageReqDTO messageReqDTO = request.getMessage();
         messageReqDTO.setConversationId(conversation.getId());
+        messageReqDTO.setSenderId(logger.getUserId());
         ApiResponse<MessageResDTO> response = messageClient.saveMessage(messageReqDTO);
+
         if (!response.isSuccess()) {
             throw new ChatServiceException("ConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
+
         return conversation;
     }
 }
