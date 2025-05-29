@@ -11,7 +11,7 @@ import java.util.List;
 public interface MessageService {
    MessageResDTO save(MessageReqDTO reqChatMessageDTO) throws ChatServiceException;
 
-   CustomPageScroll<MessageResDTO> getScrollMessages(SearchMessageRequestDto request) throws ChatServiceException;
+   CustomPageScroll<MessageResDTO> searchMessage(SearchMessageRequestDto request) throws ChatServiceException;
 
    Boolean markReadMessages(List<String> ids) throws ChatServiceException;
 }

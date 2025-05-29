@@ -25,12 +25,12 @@ public class ConversationController {
     private final UserConversationService userConversationService;
 
     @PostMapping("/save")
-    public ApiResponse<ConversationResDTO> saveConversation(@RequestBody ConversationReqDTO request) throws ChatServiceException {
+    public ApiResponse<ConversationResDTO> saveConversation(@RequestBody ConversationReqDTO request) throws AppException {
         return ApiResponse.success(conversationsService.saveConversation(request));
     }
 
     @PostMapping("/create")
-    public ApiResponse<ConversationResDTO> createConversation(@RequestBody ConversationReqDTO request) throws ChatServiceException {
+    public ApiResponse<ConversationResDTO> createConversation(@RequestBody ConversationReqDTO request) throws AppException {
         return ApiResponse.success(conversationsService.createConversation(request));
     }
 

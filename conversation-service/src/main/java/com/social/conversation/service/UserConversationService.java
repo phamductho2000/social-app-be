@@ -2,6 +2,9 @@ package com.social.conversation.service;
 
 import com.social.common.exception.AppException;
 import com.social.common.page.CustomPageScroll;
+import com.social.conversation.constants.ConversationType;
+import com.social.conversation.domain.Conversation;
+import com.social.conversation.dto.request.ConversationReqDTO;
 import com.social.conversation.dto.request.SearchConversationRequestDto;
 import com.social.conversation.dto.response.MessageResDTO;
 import com.social.conversation.dto.response.UserConversationResDTO;
@@ -13,7 +16,7 @@ import java.util.List;
 
 public interface UserConversationService {
 
-    List<UserConversationResDTO> saveAll(List<String> participantIds, String conversationId, String type) throws ChatServiceException;
+    List<UserConversationResDTO> saveAll(ConversationReqDTO request, Conversation conversation, MessageResDTO messageResDTO) throws AppException;
 
     CustomPageScroll<UserConversationResDTO> search(SearchConversationRequestDto request) throws AppException;
 

@@ -1,5 +1,6 @@
 package com.social.conversation.dto.response;
 
+import com.social.conversation.constants.ConversationType;
 import com.social.conversation.dto.request.MessageReqDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ConversationResDTO {
     private String id;
-    private String type;
+    private ConversationType type;
     private String name;
     private String avatar;
     private String description;

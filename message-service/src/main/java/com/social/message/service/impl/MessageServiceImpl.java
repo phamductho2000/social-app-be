@@ -66,7 +66,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public CustomPageScroll<MessageResDTO> getScrollMessages(SearchMessageRequestDto request) throws ChatServiceException {
+    public CustomPageScroll<MessageResDTO> searchMessage(SearchMessageRequestDto request) throws ChatServiceException {
 
         if (null == request) {
             throw new ChatServiceException("Payload empty", "PAYLOAD_EMPTY");
@@ -86,14 +86,16 @@ public class MessageServiceImpl implements MessageService {
                 .with(Sort.by(Sort.Direction.DESC, "createdAt"))
                 .with(scrollPosition);
 
-        Window<MessageResDTO> result = mongoTemplate.scroll(query, MessageResDTO.class);
+        Window<Message> result = mongoTemplate.scroll(query, Message.class);
 
         if (result.hasNext()) {
             scrollPosition = result.positionAt(result.size() - 1);
             extendData.put("searchAfter", encodeSearchAfter(scrollPosition));
         }
 
-        return CustomPageScroll.buildPage(result.getContent(), result.size(), extendData);
+        return CustomPageScroll.buildPage(result.getContent().stream().map(e -> modelMapper.map(e, MessageResDTO.class)).toList(),
+                result.size(),
+                extendData);
     }
 
     @Override

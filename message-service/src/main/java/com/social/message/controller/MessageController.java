@@ -27,9 +27,9 @@ public class MessageController {
         return ApiResponse.success(messagesService.save(request));
     }
 
-    @PostMapping("/get-messages")
-    public ApiResponse<CustomPageScroll<MessageResDTO>> getMessages(@RequestBody SearchMessageRequestDto request) throws ChatServiceException {
-        return ApiResponse.success(messagesService.getScrollMessages(request));
+    @PostMapping("/search-message")
+    public ApiResponse<CustomPageScroll<MessageResDTO>> searchMessage(@RequestBody SearchMessageRequestDto request) throws ChatServiceException {
+        return ApiResponse.success(messagesService.searchMessage(request));
     }
 
     @PostMapping("/mark-read-messages")

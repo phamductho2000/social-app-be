@@ -4,8 +4,12 @@ import com.social.common.exception.AppException;
 import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.conversation.client.UserClient;
+import com.social.conversation.constants.ConversationType;
+import com.social.conversation.domain.Conversation;
 import com.social.conversation.domain.Message;
 import com.social.conversation.domain.UserConversation;
+import com.social.conversation.dto.request.ConversationReqDTO;
+import com.social.conversation.dto.request.MessageReqDTO;
 import com.social.conversation.dto.request.SearchConversationRequestDto;
 import com.social.conversation.dto.response.MessageResDTO;
 import com.social.conversation.dto.response.UserConversationResDTO;
@@ -50,8 +54,6 @@ public class UserConversationServiceImpl implements UserConversationService {
 
     private final MongoTemplate mongoTemplate;
 
-    private final ParticipantService participantService;
-
     private final UserClient userClient;
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -59,13 +61,13 @@ public class UserConversationServiceImpl implements UserConversationService {
     private final Logger logger;
 
     @Override
-    public List<UserConversationResDTO> saveAll(List<String> participantIds, String conversationId, String type) throws ChatServiceException {
-        log.info("Saving user conversations: {}", participantIds);
-        if (null == participantIds || participantIds.isEmpty() || StringUtils.isEmpty(conversationId) || StringUtils.isEmpty(type)) {
-            throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
+    public List<UserConversationResDTO> saveAll(ConversationReqDTO request, Conversation conversation, MessageResDTO messageResDTO) throws AppException {
+        log.info("Saving user conversations: {}", request);
+        if (Objects.isNull(request) || Objects.isNull(conversation)) {
+            throw new AppException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
 
-        List<UserConversation> data = genDataDirect(participantIds, conversationId, type);
+        List<UserConversation> data = genDataDirect(request, conversation, messageResDTO);
 
         return userConversationsRepository.saveAll(data)
                 .stream()
@@ -73,22 +75,28 @@ public class UserConversationServiceImpl implements UserConversationService {
                 .collect(Collectors.toList());
     }
 
-    private List<UserConversation> genDataDirect(List<String> participantIds, String conversationId, String type) throws ChatServiceException {
+    private List<UserConversation> genDataDirect(ConversationReqDTO request, Conversation conversation, MessageResDTO messageResDTO) throws AppException {
+        List<String> participantIds = request.getParticipantIds();
+        Message message = mapper.map(messageResDTO, Message.class);
+
         ApiResponse<List<UserResponseDTO>> response = userClient.getUsersByIds(participantIds);
         if (!response.isSuccess()) {
-            throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
+            throw new AppException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
+
         List<UserResponseDTO> users = response.getData();
+
         return participantIds.stream().map(p -> {
-            UserResponseDTO recipient = users.stream().filter(f -> !f.getId().equals(p)).findFirst().orElse(null);
+            UserResponseDTO recipient = users.stream().filter(f -> !f.getUserId().equals(p)).findFirst().orElse(null);
             assert recipient != null;
             return UserConversation.builder()
                     .userId(p)
                     .name(recipient.getFullName())
                     .avatar(recipient.getAvatar())
-                    .conversationId(conversationId)
-                    .type(type)
+                    .conversationId(conversation.getId())
+                    .type(conversation.getType())
                     .unreadCount(0)
+                    .lastMessage(message)
                     .build();
         }).toList();
     }
@@ -140,7 +148,7 @@ public class UserConversationServiceImpl implements UserConversationService {
             Message message = Message.builder()
                     .content(request.getContent())
                     .senderId(request.getSenderId())
-                    .timestamp(request.getCreatedAt())
+                    .createdAt(request.getCreatedAt())
                     .build();
             conversation.setLastMessage(message);
             if (!CollectionUtils.isEmpty(userIds)) {
