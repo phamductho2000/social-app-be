@@ -5,12 +5,10 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserLoginResponseDto {
+public class RefreshTokenResponseDto {
 
   private String accessToken;
   private String refreshToken;
   private String expireIn;
   private String refreshExpiresIn;
-  private String username;
-  private String userId;
 }

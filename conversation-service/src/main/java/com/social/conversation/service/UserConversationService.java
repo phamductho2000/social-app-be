@@ -20,5 +20,5 @@ public interface UserConversationService {
 
     CustomPageScroll<UserConversationResDTO> search(SearchConversationRequestDto request) throws AppException;
 
-    void handleNewMessage(MessageResDTO request) throws ChatServiceException;
+    List<UserConversationResDTO> handleNewMessage(MessageResDTO request) throws ChatServiceException;
 }

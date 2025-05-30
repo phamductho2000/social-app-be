@@ -1,6 +1,5 @@
 package com.social.websocket.domain;
 
-import com.social.websocket.constant.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,18 +8,17 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@RedisHash("WS_USER_CONNECT")
-public class WsUserConnect implements Serializable {
+@RedisHash("WS:SESSION")
+public class RedisSessionInfo implements Serializable {
     @Id
+    private String sessionId;
     private String userId;
-    private String username;
-    private UserStatus status;
-    private LocalDateTime timeConnected;
-    private LocalDateTime timeDisconnected;
+    private String nodeId;
+    private Instant connectedAt;
 }

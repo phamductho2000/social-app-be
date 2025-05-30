@@ -1,8 +1,10 @@
 package com.social.auth.service.impl;
 
 import com.social.auth.client.KeycloakClient;
+import com.social.auth.dto.keycloak.request.RefreshTokenRequestDto;
 import com.social.auth.dto.keycloak.request.UserLoginRequestDto;
 import com.social.auth.dto.keycloak.request.UserRegisterReqDTO;
+import com.social.auth.dto.keycloak.response.RefreshTokenResponseDto;
 import com.social.auth.dto.keycloak.response.UserLoginResponseDto;
 import com.social.auth.model.AccessTokenModel;
 import com.social.auth.service.KeycloakService;
@@ -39,16 +41,15 @@ public class KeycloakServiceImpl implements KeycloakService {
     private final Logger logger;
 
     @Override
-    public UserLoginResponseDto login(UserLoginRequestDto userLoginRequestDto) {
-        Map<String, Object> headerMap = new HashMap<>();
-        headerMap.put(GRANT_TYPE, "password");
-        headerMap.put(CLIENT_ID, "chat-app");
-        headerMap.put(CLIENT_SECRET, "b8lbjvCS8kpTDm9gQefDY1l45O7qurTH");
-        headerMap.put("username", userLoginRequestDto.getUsername());
-        headerMap.put("password", userLoginRequestDto.getPassword());
+    public UserLoginResponseDto login(UserLoginRequestDto userLoginRequestDto) throws AppException {
         try {
+            Map<String, Object> headerMap = new HashMap<>();
+            headerMap.put(GRANT_TYPE, PASSWORD);
+            headerMap.put(CLIENT_ID, "chat-app");
+            headerMap.put(CLIENT_SECRET, "b8lbjvCS8kpTDm9gQefDY1l45O7qurTH");
+            headerMap.put(USERNAME, userLoginRequestDto.getUsername());
+            headerMap.put(PASSWORD, userLoginRequestDto.getPassword());
             ResponseEntity<AccessTokenModel> data = keycloakClient.login(headerMap);
-//            logger.addTrace("Login data", data);
             AccessTokenModel token = data.getBody();
             if (data.getStatusCode().is2xxSuccessful() && token != null) {
                 return UserLoginResponseDto.builder()
@@ -57,17 +58,35 @@ public class KeycloakServiceImpl implements KeycloakService {
                         .expireIn(token.getExpiresIn())
                         .refreshExpiresIn(token.getRefreshExpiresIn())
                         .build();
-
-//                return ResponseUtil.wrap()
             }
+            throw new AppException(ERR_SYSTEM.getCode());
         } catch (FeignException.FeignClientException ex) {
-//            logger.addException(ex);
-//            if (ex instanceof FeignException.FeignClientException
-//                    && feignException.status() == 401) {
-//                return ApiResponse.error(RespCode.ERR_KEYCLOAK_WRONG_USER_OR_PASSWORD);
-//            }
+            throw new AppException(ERR_SYSTEM.getCode());
         }
-        return null;
+    }
+
+    @Override
+    public RefreshTokenResponseDto refreshToken(RefreshTokenRequestDto request) throws AppException {
+        try {
+            Map<String, Object> headerMap = new HashMap<>();
+            headerMap.put(GRANT_TYPE, REFRESH_TOKEN);
+            headerMap.put(CLIENT_ID, "chat-app");
+            headerMap.put(CLIENT_SECRET, "b8lbjvCS8kpTDm9gQefDY1l45O7qurTH");
+            headerMap.put(REFRESH_TOKEN, request.refreshToken());
+            ResponseEntity<AccessTokenModel> data = keycloakClient.login(headerMap);
+            AccessTokenModel token = data.getBody();
+            if (data.getStatusCode().is2xxSuccessful() && token != null) {
+                return RefreshTokenResponseDto.builder()
+                        .accessToken(token.getAccessToken())
+                        .refreshToken(token.getRefreshToken())
+                        .expireIn(token.getExpiresIn())
+                        .refreshExpiresIn(token.getRefreshExpiresIn())
+                        .build();
+            }
+            throw new AppException(ERR_SYSTEM.getCode());
+        } catch (FeignException.FeignClientException ex) {
+            throw new AppException(ERR_SYSTEM.getCode());
+        }
     }
 
     @Override

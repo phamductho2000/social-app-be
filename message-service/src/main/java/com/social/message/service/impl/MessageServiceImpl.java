@@ -59,7 +59,7 @@ public class MessageServiceImpl implements MessageService {
         if (Objects.nonNull(req)) {
             Message chatMessage = modelMapper.map(req, Message.class);
             chatMessage.setConversationId(req.getConversationId());
-            chatMessage.setSenderId(logger.getUserId());
+//            chatMessage.setSenderId(logger.getUserId());
             return modelMapper.map(messagesRepository.save(chatMessage), MessageResDTO.class);
         }
         throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");

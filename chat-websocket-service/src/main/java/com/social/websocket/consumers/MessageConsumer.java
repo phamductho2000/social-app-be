@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_MESSAGE;
 
 @Component
 @RequiredArgsConstructor
@@ -21,13 +22,27 @@ public class MessageConsumer {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    @KafkaListener(topics = "SAVE_MESSAGE_SUCCESS", groupId = "chat-app")
-    public void listen(String message) {
+    @KafkaListener(topics = "SAVE_NEW_MESSAGE_SUCCESS", groupId = "chat-app")
+    public void listenMessage(String message) {
         MessageResDTO res;
         try {
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
             res = objectMapper.readValue(message, MessageResDTO.class);
-            messagingTemplate.convertAndSend("/topic/conversation/" + res.getConversationId(), res);
+            messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + res.getConversationId(), res);
+//            kafkaTemplate.send("NEW_MESSAGE_CONVERSATION", message);
+        } catch (JsonProcessingException e) {
+//            kafkaTemplate.send("SAVE_MESSAGE_FAILED", message);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @KafkaListener(topics = "UPDATE_CONVERSATION_SUCCESS", groupId = "chat-app")
+    public void listenConversation(String message) {
+        MessageResDTO res;
+        try {
+            objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+            res = objectMapper.readValue(message, MessageResDTO.class);
+            messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + res.getConversationId(), res);
             kafkaTemplate.send("NEW_MESSAGE_CONVERSATION", message);
         } catch (JsonProcessingException e) {
 //            kafkaTemplate.send("SAVE_MESSAGE_FAILED", message);

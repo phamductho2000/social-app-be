@@ -73,7 +73,7 @@ public class ConversationServiceImpl implements ConversationService {
         result.setAvatar(request.getAvatar());
         request.getParticipantIds().add(logger.getUserId());
         participantService.saveAll(request, conversation);
-        userConversationService.saveAll(request, conversation);
+//        userConversationService.saveAll(request, conversation);
         return result;
     }
 
@@ -125,7 +125,7 @@ public class ConversationServiceImpl implements ConversationService {
             throw new AppException("ConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
 
-        userConversationService.saveAll(request, conversation);
+        userConversationService.saveAll(request, conversation, response.getData());
 
         return mapper.map(conversation, ConversationResDTO.class);
     }

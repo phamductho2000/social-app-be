@@ -137,25 +137,23 @@ public class UserConversationServiceImpl implements UserConversationService {
     }
 
     @Override
-    public void handleNewMessage(MessageResDTO request) throws ChatServiceException {
+    public List<UserConversationResDTO> handleNewMessage(MessageResDTO request) throws ChatServiceException {
         if (Objects.isNull(request)) {
             throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
         String conversationId = request.getConversationId();
-        Set<Object> userIds = redisTemplate.opsForSet().members(String.format("CONNECT_CONVERSATION:%s", conversationId));
-        List<UserConversation> conversations = userConversationsRepository.findAllByConversationId(conversationId);
+        String senderId = request.getSenderId();
+//        Set<Object> userIds = redisTemplate.opsForSet().members(String.format("CONNECT_CONVERSATION:%s", conversationId));
+        List<UserConversation> conversations = userConversationsRepository.findAllByConversationIdAndUserIdNot(conversationId, senderId);
         List<UserConversation> saves = conversations.stream().peek(conversation -> {
-            Message message = Message.builder()
-                    .content(request.getContent())
-                    .senderId(request.getSenderId())
-                    .createdAt(request.getCreatedAt())
-                    .build();
+            Message message = mapper.map(request, Message.class);
             conversation.setLastMessage(message);
-            if (!CollectionUtils.isEmpty(userIds)) {
-                int count = conversation.getUnreadCount();
-                conversation.setUnreadCount(!userIds.contains(request.getSenderId()) ? count + 1 : count);
-            }
+            conversation.setUnreadCount(conversation.getUnreadCount() + 1);
+//            if (!CollectionUtils.isEmpty(userIds)) {
+//                int count = conversation.getUnreadCount();
+//                conversation.setUnreadCount(!userIds.contains(request.getSenderId()) ? count + 1 : count);
+//            }
         }).toList();
-        userConversationsRepository.saveAll(saves);
+        return userConversationsRepository.saveAll(saves).stream().map(e -> mapper.map(e, UserConversationResDTO.class)).toList();
     }
 }

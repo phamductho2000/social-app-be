@@ -29,7 +29,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
             messageDTO.setId(messageId);
             String payload = objectMapper.writeValueAsString(messageDTO);
 //            messagingTemplate.convertAndSend("/topic/conversation" + messageDTO.getConversationId(), payload);
-            kafkaTemplate.send("SAVE_MESSAGE", payload);
+            kafkaTemplate.send("SAVE_NEW_MESSAGE", payload);
         }
     }
 }

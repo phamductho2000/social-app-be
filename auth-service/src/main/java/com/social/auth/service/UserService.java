@@ -8,7 +8,7 @@ import com.social.auth.dto.user.response.UserResponseDTO;
 import com.social.common.exception.AppException;
 
 public interface UserService {
-    UserLoginResponseDto login(UserLoginRequestDto userLoginRequestDto) throws JsonProcessingException;
+    UserLoginResponseDto login(UserLoginRequestDto userLoginRequestDto) throws JsonProcessingException, AppException;
 
     UserResponseDTO register(UserRegisterReqDTO request) throws AppException;
 }

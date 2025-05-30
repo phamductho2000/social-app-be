@@ -12,5 +12,5 @@ import java.util.Optional;
 public interface UserConversationRepository extends MongoRepository<UserConversation, String> {
     Optional<UserConversation> findByConversationIdAndUserId(ObjectId conversationId, String userId);
 
-    List<UserConversation> findAllByConversationId(String conversationId);
+    List<UserConversation> findAllByConversationIdAndUserIdNot(String conversationId, String userId);
 }

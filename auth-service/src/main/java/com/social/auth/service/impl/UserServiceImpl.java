@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
     private final UserClient userClient;
 
     @Override
-    public UserLoginResponseDto login(UserLoginRequestDto request) throws JsonProcessingException {
+    public UserLoginResponseDto login(UserLoginRequestDto request) throws JsonProcessingException, AppException {
         UserLoginResponseDto responseDto = keycloakService.login(request);
 
         String jwt = responseDto.getAccessToken();

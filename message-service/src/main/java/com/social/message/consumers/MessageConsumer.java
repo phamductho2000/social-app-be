@@ -25,7 +25,7 @@ public class MessageConsumer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    @KafkaListener(topics = "SAVE_MESSAGE", groupId = "chat-app")
+    @KafkaListener(topics = "SAVE_NEW_MESSAGE", groupId = "chat-app")
     public void listen(String message) {
         MessageReqDTO req;
         try {
@@ -34,10 +34,10 @@ public class MessageConsumer {
             MessageResDTO res = messageService.save(req);
             if (Objects.nonNull(res)) {
                 String payload = objectMapper.writeValueAsString(res);
-                kafkaTemplate.send("SAVE_MESSAGE_SUCCESS", payload);
+                kafkaTemplate.send("SAVE_NEW_MESSAGE_SUCCESS", payload);
             }
         } catch (JsonProcessingException | ChatServiceException e) {
-            kafkaTemplate.send("SAVE_MESSAGE_FAILED", message);
+            kafkaTemplate.send("SAVE_NEW_MESSAGE_FAILED", message);
             throw new RuntimeException(e);
         }
     }
