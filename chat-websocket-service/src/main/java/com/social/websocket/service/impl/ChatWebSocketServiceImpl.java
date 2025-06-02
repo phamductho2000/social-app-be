@@ -2,15 +2,19 @@ package com.social.websocket.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.social.websocket.domain.RedisSessionInfo;
 import com.social.websocket.dto.MessageDTO;
 import com.social.websocket.service.ChatWebSocketService;
+import com.social.websocket.service.RedisSessionInfoService;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -22,14 +26,31 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
+    private final RedisSessionInfoService redisSessionInfoService;
+
     @Override
-    public void sendMessage(MessageDTO messageDTO) throws JsonProcessingException {
-        if (Objects.nonNull(messageDTO)) {
-            String messageId = new ObjectId().toString();
-            messageDTO.setId(messageId);
-            String payload = objectMapper.writeValueAsString(messageDTO);
-//            messagingTemplate.convertAndSend("/topic/conversation" + messageDTO.getConversationId(), payload);
-            kafkaTemplate.send("SAVE_NEW_MESSAGE", payload);
+    public void sendMessage(Message<Object> message) {
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(message);
+        String sessionId = accessor.getSessionId();
+        Object payload = message.getPayload();
+
+        if (payload instanceof byte[]) {
+            try {
+                String json = new String((byte[]) payload, StandardCharsets.UTF_8);
+
+                ObjectMapper mapper = new ObjectMapper();
+                MessageDTO chatMessage = mapper.readValue(json, MessageDTO.class);
+
+                RedisSessionInfo sessionInfo = redisSessionInfoService.get(sessionId);
+                String messageId = new ObjectId().toString();
+                chatMessage.setId(messageId);
+                chatMessage.setSenderId(sessionInfo.getUserId());
+                kafkaTemplate.send("SAVE_NEW_MESSAGE", objectMapper.writeValueAsString(chatMessage));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+
     }
 }

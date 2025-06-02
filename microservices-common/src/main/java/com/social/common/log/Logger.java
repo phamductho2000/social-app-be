@@ -2,6 +2,8 @@ package com.social.common.log;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -15,6 +17,7 @@ import static com.social.common.constants.CommonConstants.HEADER_USER_ID;
 @Component
 @Data
 @RequestScope
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class Logger {
     private String path;
     private String method;

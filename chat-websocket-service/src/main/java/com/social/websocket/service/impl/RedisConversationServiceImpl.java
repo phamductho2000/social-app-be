@@ -1,8 +1,11 @@
 package com.social.websocket.service.impl;
 
+import com.social.websocket.domain.RedisConversation;
 import com.social.websocket.domain.RedisSessionInfo;
 import com.social.websocket.dto.SendMessageDto;
+import com.social.websocket.repo.RedisConversationRepository;
 import com.social.websocket.repo.RedisSessionInfoRepository;
+import com.social.websocket.service.RedisConversationService;
 import com.social.websocket.service.RedisSessionInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -14,27 +17,27 @@ import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
-public class RedisSessionInfoServiceImpl implements RedisSessionInfoService {
+public class RedisConversationServiceImpl implements RedisConversationService {
 
-    private final RedisSessionInfoRepository redisSessionInfoRepository;
+    private final RedisConversationRepository redisConversationRepository;
 
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public void add(String sessionId, String userId) throws UnknownHostException {
+    public void add(String conversationId, String userId) throws UnknownHostException {
         String nodeId = InetAddress.getLocalHost().getHostName();
-        RedisSessionInfo redisSessionInfo = RedisSessionInfo.builder()
-                .sessionId(sessionId)
+        RedisConversation redisConversation = RedisConversation.builder()
+                .conversationId(conversationId)
                 .userId(userId)
                 .connectedAt(Instant.now())
                 .nodeId(nodeId)
                 .build();
-        redisSessionInfoRepository.save(redisSessionInfo);
+        redisConversationRepository.save(redisConversation);
     }
 
     @Override
-    public void remove(String sessionId) {
-        redisSessionInfoRepository.deleteById(sessionId);
+    public void remove(String conversationId) {
+        redisConversationRepository.deleteById(conversationId);
     }
 
     @Override
@@ -44,10 +47,5 @@ public class RedisSessionInfoServiceImpl implements RedisSessionInfoService {
 //            messagingTemplate.convertAndSendToUser(redisSessionInfo.getSessionId(), "/queue/messages", request);
 //        });
         messagingTemplate.convertAndSend(request.getTopic(), request.getData());
-    }
-
-    @Override
-    public RedisSessionInfo get(String sessionId) {
-        return redisSessionInfoRepository.findById(sessionId).orElse(null);
     }
 }

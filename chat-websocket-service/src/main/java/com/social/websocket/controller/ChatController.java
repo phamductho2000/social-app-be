@@ -5,6 +5,7 @@ import com.social.websocket.dto.MessageDTO;
 import com.social.websocket.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -55,13 +56,13 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/send-message")
-    public void sendMessageToConversation(MessageDTO messageDTO) throws JsonProcessingException {
+    public void sendMessageToConversation(Message<Object> message) throws JsonProcessingException {
 //        if (!messageDTO.getType().equals("TYPING")) {
 //            MessagesResDTO messagesResDTO = chatWebSocketService.sendMessage(messageDTO);
 //            messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, messagesResDTO);
 //        } else {
 //            messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, messageDTO);
 //        }
-        chatWebSocketService.sendMessage(messageDTO);
+        chatWebSocketService.sendMessage(message);
     }
 }

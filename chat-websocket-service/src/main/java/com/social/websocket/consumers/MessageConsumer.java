@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_CHANGE_CONVERSATION;
 import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_MESSAGE;
 
 @Component
@@ -21,6 +22,7 @@ public class MessageConsumer {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final SimpMessagingTemplate messagingTemplate;
+
 
     @KafkaListener(topics = "SAVE_NEW_MESSAGE_SUCCESS", groupId = "chat-app")
     public void listenMessage(String message) {
@@ -42,10 +44,8 @@ public class MessageConsumer {
         try {
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
             res = objectMapper.readValue(message, MessageResDTO.class);
-            messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + res.getConversationId(), res);
-            kafkaTemplate.send("NEW_MESSAGE_CONVERSATION", message);
+            messagingTemplate.convertAndSend(TOPIC_LISTEN_CHANGE_CONVERSATION, res);
         } catch (JsonProcessingException e) {
-//            kafkaTemplate.send("SAVE_MESSAGE_FAILED", message);
             throw new RuntimeException(e);
         }
     }

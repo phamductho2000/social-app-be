@@ -8,4 +8,6 @@ import java.util.List;
 public interface RedisSessionInfoRepository extends CrudRepository<RedisSessionInfo, String> {
 
     List<RedisSessionInfo> findAllByUserId(String userId);
+
+    List<RedisSessionInfo> findAllByUserIdIn(List<String> userIds);
 }
