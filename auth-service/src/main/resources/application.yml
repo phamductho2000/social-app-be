@@ -10,3 +10,13 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+keycloak:
+  server-url: http://localhost:8080
+  realm: master
+  username: admin
+  password: admin
+  client-id: admin-cli
+  target-client-id: social-app
+  client-secret: mbLEkTHX2ZQluww2rqORVzwJZeujQnxy
+  target-realm: social-app
+  api-url: http://localhost:8080/realms/social-app

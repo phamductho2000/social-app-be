@@ -16,6 +16,7 @@ public class UserConversation extends BaseDomain {
     @Id
     private String id;
     private String userId;
+    private String username;
     private String name;
     private String avatar;
     private ConversationType type;

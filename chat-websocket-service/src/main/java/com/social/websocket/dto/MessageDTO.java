@@ -22,4 +22,6 @@ public class MessageDTO {
     private String type;
     private Boolean isRead;
     private List<MultipartFile> attachments;
+    private String createdBy;
+    private String updatedBy;
 }

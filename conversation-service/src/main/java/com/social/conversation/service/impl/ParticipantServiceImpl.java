@@ -7,6 +7,7 @@ import com.social.conversation.domain.Participant;
 import com.social.conversation.dto.request.ConversationReqDTO;
 import com.social.conversation.dto.request.ParticipantReqDTO;
 import com.social.conversation.dto.response.ParticipantResDTO;
+import com.social.conversation.dto.response.UserResponseDTO;
 import com.social.conversation.repo.ParticipantsRepository;
 import com.social.conversation.service.ParticipantService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.bson.types.ObjectId;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Instant;
 import java.util.List;
@@ -32,22 +34,23 @@ public class ParticipantServiceImpl implements ParticipantService {
     private final ParticipantsRepository participantsRepository;
 
     @Override
-    public List<ParticipantResDTO> saveAll(ConversationReqDTO request, Conversation conversation) throws AppException {
-        if (Objects.isNull(request) || Objects.isNull(conversation)) {
+    public List<ParticipantResDTO> saveAll(List<UserResponseDTO> participants, Conversation conversation) throws AppException {
+        if (CollectionUtils.isEmpty(participants) || Objects.isNull(conversation)) {
             throw new AppException("ParticipantsService: Empty payload", "EMPTY_PAYLOAD");
         }
         if (conversation.getType() == ConversationType.DIRECT) {
-            List<ParticipantReqDTO> data = request.getParticipantIds().stream().map(p -> ParticipantReqDTO.builder()
-                    .userId(p)
+            List<ParticipantReqDTO> data = participants.stream().map(p -> ParticipantReqDTO.builder()
+                    .userId(p.getUserId())
+                    .username(p.getUsername())
                     .role("MEMBER")
                     .status("ACTIVE")
                     .joinedAt(Instant.now())
                     .build()).toList();
 
             return participantsRepository.saveAll(data.stream().map(dto -> {
-                        Participant participants = mapper.map(dto, Participant.class);
-                        participants.setConversationId(new ObjectId(conversation.getId()));
-                        return participants;
+                        Participant entity = mapper.map(dto, Participant.class);
+                        entity.setConversationId(new ObjectId(conversation.getId()));
+                        return entity;
                     }).collect(Collectors.toList()))
                     .stream().map(entity -> mapper.map(entity, ParticipantResDTO.class))
                     .collect(Collectors.toList());

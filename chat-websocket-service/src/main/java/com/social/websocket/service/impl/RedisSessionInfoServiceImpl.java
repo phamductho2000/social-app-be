@@ -21,11 +21,12 @@ public class RedisSessionInfoServiceImpl implements RedisSessionInfoService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public void add(String sessionId, String userId) throws UnknownHostException {
+    public void add(String sessionId, String userId, String username) throws UnknownHostException {
         String nodeId = InetAddress.getLocalHost().getHostName();
         RedisSessionInfo redisSessionInfo = RedisSessionInfo.builder()
                 .sessionId(sessionId)
                 .userId(userId)
+                .userName(username)
                 .connectedAt(Instant.now())
                 .nodeId(nodeId)
                 .build();

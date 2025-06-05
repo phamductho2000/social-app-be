@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.Map;
 
-@FeignClient(name = "keycloak", url = "http://localhost:8080")
+@FeignClient(name = "keycloak", url = "${keycloak.api-url}")
 public interface KeycloakClient {
 
-    @PostMapping(value = "/realms/app-chat/protocol/openid-connect/token", consumes = "application/x-www-form-urlencoded")
+    @PostMapping(value = "/protocol/openid-connect/token", consumes = "application/x-www-form-urlencoded")
     ResponseEntity<AccessTokenModel> login(Map<String, ?> headers);
 }

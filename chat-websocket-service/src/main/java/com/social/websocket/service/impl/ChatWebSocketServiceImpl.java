@@ -1,9 +1,9 @@
 package com.social.websocket.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social.websocket.domain.RedisSessionInfo;
 import com.social.websocket.dto.MessageDTO;
+import com.social.websocket.dto.UserConversationResDTO;
 import com.social.websocket.service.ChatWebSocketService;
 import com.social.websocket.service.RedisSessionInfoService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +15,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +46,8 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 String messageId = new ObjectId().toString();
                 chatMessage.setId(messageId);
                 chatMessage.setSenderId(sessionInfo.getUserId());
+                chatMessage.setCreatedBy(sessionInfo.getUserName());
+                chatMessage.setUpdatedBy(sessionInfo.getUserName());
                 kafkaTemplate.send("SAVE_NEW_MESSAGE", objectMapper.writeValueAsString(chatMessage));
 
             } catch (Exception e) {
@@ -52,5 +55,12 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
             }
         }
 
+    }
+
+    @Override
+    public void sendConversationChange(List<UserConversationResDTO> conversations) {
+        conversations.forEach(conversation -> {
+            messagingTemplate.convertAndSendToUser(conversation.getUsername(), "/queue/conversation", conversation);
+        });
     }
 }

@@ -18,6 +18,7 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,15 @@ import static org.keycloak.OAuth2Constants.*;
 @RequiredArgsConstructor
 public class KeycloakServiceImpl implements KeycloakService {
 
+    @Value("${keycloak.target-realm}")
+    private String realm;
+
+    @Value("${keycloak.client-secret}")
+    private String clientSecret;
+
+    @Value("${keycloak.target-client-id}")
+    private String clientId;
+
     private final KeycloakClient keycloakClient;
 
     private final Keycloak keycloak;
@@ -45,8 +55,8 @@ public class KeycloakServiceImpl implements KeycloakService {
         try {
             Map<String, Object> headerMap = new HashMap<>();
             headerMap.put(GRANT_TYPE, PASSWORD);
-            headerMap.put(CLIENT_ID, "chat-app");
-            headerMap.put(CLIENT_SECRET, "b8lbjvCS8kpTDm9gQefDY1l45O7qurTH");
+            headerMap.put(CLIENT_ID, clientId);
+            headerMap.put(CLIENT_SECRET, clientSecret);
             headerMap.put(USERNAME, userLoginRequestDto.getUsername());
             headerMap.put(PASSWORD, userLoginRequestDto.getPassword());
             ResponseEntity<AccessTokenModel> data = keycloakClient.login(headerMap);
@@ -70,8 +80,8 @@ public class KeycloakServiceImpl implements KeycloakService {
         try {
             Map<String, Object> headerMap = new HashMap<>();
             headerMap.put(GRANT_TYPE, REFRESH_TOKEN);
-            headerMap.put(CLIENT_ID, "chat-app");
-            headerMap.put(CLIENT_SECRET, "b8lbjvCS8kpTDm9gQefDY1l45O7qurTH");
+            headerMap.put(CLIENT_ID, clientId);
+            headerMap.put(CLIENT_SECRET, clientSecret);
             headerMap.put(REFRESH_TOKEN, request.refreshToken());
             ResponseEntity<AccessTokenModel> data = keycloakClient.login(headerMap);
             AccessTokenModel token = data.getBody();
@@ -91,7 +101,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     @Override
     public String createUser(UserRegisterReqDTO req) throws AppException {
-        UsersResource usersResource = keycloak.realm("app-chat").users();
+        UsersResource usersResource = keycloak.realm(realm).users();
 
         UserRepresentation user = new UserRepresentation();
         user.setUsername(req.getEmail());
@@ -101,7 +111,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         user.setEnabled(true);
 
         CredentialRepresentation credentials = new CredentialRepresentation();
-        credentials.setType("password");
+        credentials.setType(PASSWORD);
         credentials.setValue(req.getPassword());
         user.setCredentials(Collections.singletonList(credentials));
 
@@ -117,13 +127,13 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     @Override
     public ApiResponse<Boolean> deleteUser(String email) throws AppException {
-        List<UserRepresentation> users = keycloak.realm("app-chat")
+        List<UserRepresentation> users = keycloak.realm(realm)
                 .users()
                 .search(email);
 
         if (!users.isEmpty()) {
             String userId = users.getFirst().getId();
-            keycloak.realm("app-chat").users().delete(userId);
+            keycloak.realm(realm).users().delete(userId);
             return ApiResponse.success(true);
         } else {
             throw new AppException(ERR_SYSTEM.getCode());

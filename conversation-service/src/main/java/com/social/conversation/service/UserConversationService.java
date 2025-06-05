@@ -8,6 +8,7 @@ import com.social.conversation.dto.request.ConversationReqDTO;
 import com.social.conversation.dto.request.SearchConversationRequestDto;
 import com.social.conversation.dto.response.MessageResDTO;
 import com.social.conversation.dto.response.UserConversationResDTO;
+import com.social.conversation.dto.response.UserResponseDTO;
 import com.social.conversation.exception.ChatServiceException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public interface UserConversationService {
 
-    List<UserConversationResDTO> saveAll(ConversationReqDTO request, Conversation conversation, MessageResDTO messageResDTO) throws AppException;
+    List<UserConversationResDTO> saveAll(List<UserResponseDTO> participants, Conversation conversation, MessageResDTO messageResDTO) throws AppException;
 
     CustomPageScroll<UserConversationResDTO> search(SearchConversationRequestDto request) throws AppException;
 

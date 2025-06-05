@@ -15,6 +15,7 @@ public class ParticipantReqDTO {
     private String id;
     private String conversationId;
     private String userId;
+    private String username;
     private String fullName;
     private String avatar;
     private String role;

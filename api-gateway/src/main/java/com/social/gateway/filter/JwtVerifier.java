@@ -27,7 +27,7 @@ public class JwtVerifier {
     private final JWSVerifierFactory jwsVerifierFactory;
 
     public JwtVerifier() {
-        this.jwkSource = createJWKSource("http://localhost:8080/realms/app-chat/protocol/openid-connect/certs");
+        this.jwkSource = createJWKSource("http://localhost:8080/realms/social-app/protocol/openid-connect/certs");
         this.jwsVerifierFactory = new DefaultJWSVerifierFactory();
     }
 

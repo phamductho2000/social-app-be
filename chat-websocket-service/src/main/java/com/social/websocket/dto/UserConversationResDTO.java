@@ -1,6 +1,5 @@
-package com.social.conversation.dto.response;
+package com.social.websocket.dto;
 
-import com.social.conversation.dto.request.MessageReqDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,5 +20,5 @@ public class UserConversationResDTO {
     private Integer unreadCount;
     private Boolean notifications;
     private Boolean isPinned;
-    private MessageReqDTO lastMessage;
+    private MessageResDTO lastMessage;
 }

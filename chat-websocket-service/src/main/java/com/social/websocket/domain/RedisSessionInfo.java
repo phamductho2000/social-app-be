@@ -19,6 +19,7 @@ public class RedisSessionInfo implements Serializable {
     @Id
     private String sessionId;
     private String userId;
+    private String userName;
     private String nodeId;
     private Instant connectedAt;
 }

@@ -23,9 +23,10 @@ public class ChatWebsocketEventListener {
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) throws UnknownHostException {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        String userId = (String) Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("userId");
+        String userId = (String) Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("userid");
+        String username = (String) Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("username");
         String sessionId = (String) event.getMessage().getHeaders().get(SESSION_ID_HEADER);
-        redisSessionInfoService.add(sessionId, userId);
+        redisSessionInfoService.add(sessionId, userId, username);
         System.out.println("New connection established: " + sessionId);
     }
 

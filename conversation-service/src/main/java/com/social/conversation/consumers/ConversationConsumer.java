@@ -25,7 +25,7 @@ public class ConversationConsumer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    @KafkaListener(topics = "SAVE_NEW_MESSAGE_SUCCESS", groupId = "chat-app")
+    @KafkaListener(topics = "SAVE_NEW_MESSAGE_SUCCESS", groupId = "chat-app-2")
     public void listen(String message) {
         MessageResDTO res;
         try {

@@ -13,4 +13,6 @@ public interface UserConversationRepository extends MongoRepository<UserConversa
     Optional<UserConversation> findByConversationIdAndUserId(ObjectId conversationId, String userId);
 
     List<UserConversation> findAllByConversationIdAndUserIdNot(String conversationId, String userId);
+
+    List<UserConversation> findAllByConversationId(String conversationId);
 }

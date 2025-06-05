@@ -6,7 +6,7 @@ import com.social.websocket.dto.SendMessageDto;
 import java.net.UnknownHostException;
 
 public interface RedisSessionInfoService {
-    void add(String conversationId, String userId) throws UnknownHostException;
+    void add(String conversationId, String userId, String username) throws UnknownHostException;
 
     void remove(String conversationId);
 

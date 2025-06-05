@@ -61,13 +61,13 @@ public class UserConversationServiceImpl implements UserConversationService {
     private final Logger logger;
 
     @Override
-    public List<UserConversationResDTO> saveAll(ConversationReqDTO request, Conversation conversation, MessageResDTO messageResDTO) throws AppException {
-        log.info("Saving user conversations: {}", request);
-        if (Objects.isNull(request) || Objects.isNull(conversation)) {
+    public List<UserConversationResDTO> saveAll(List<UserResponseDTO> participants, Conversation conversation, MessageResDTO messageResDTO) throws AppException {
+        log.info("Saving user conversations: {}", participants);
+        if (CollectionUtils.isEmpty(participants) || Objects.isNull(conversation)) {
             throw new AppException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
 
-        List<UserConversation> data = genDataDirect(request, conversation, messageResDTO);
+        List<UserConversation> data = genDataDirect(participants, conversation, messageResDTO);
 
         return userConversationsRepository.saveAll(data)
                 .stream()
@@ -75,22 +75,16 @@ public class UserConversationServiceImpl implements UserConversationService {
                 .collect(Collectors.toList());
     }
 
-    private List<UserConversation> genDataDirect(ConversationReqDTO request, Conversation conversation, MessageResDTO messageResDTO) throws AppException {
-        List<String> participantIds = request.getParticipantIds();
+    private List<UserConversation> genDataDirect(List<UserResponseDTO> participants, Conversation conversation, MessageResDTO messageResDTO) throws AppException {
+
         Message message = mapper.map(messageResDTO, Message.class);
 
-        ApiResponse<List<UserResponseDTO>> response = userClient.getUsersByIds(participantIds);
-        if (!response.isSuccess()) {
-            throw new AppException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
-        }
-
-        List<UserResponseDTO> users = response.getData();
-
-        return participantIds.stream().map(p -> {
-            UserResponseDTO recipient = users.stream().filter(f -> !f.getUserId().equals(p)).findFirst().orElse(null);
+        return participants.stream().map(p -> {
+            UserResponseDTO recipient = participants.stream().filter(f -> !f.getUserId().equals(p.getUserId())).findFirst().orElse(null);
             assert recipient != null;
             return UserConversation.builder()
-                    .userId(p)
+                    .userId(p.getUserId())
+                    .username(p.getUsername())
                     .name(recipient.getFullName())
                     .avatar(recipient.getAvatar())
                     .conversationId(conversation.getId())
@@ -142,17 +136,11 @@ public class UserConversationServiceImpl implements UserConversationService {
             throw new ChatServiceException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
         }
         String conversationId = request.getConversationId();
-        String senderId = request.getSenderId();
-//        Set<Object> userIds = redisTemplate.opsForSet().members(String.format("CONNECT_CONVERSATION:%s", conversationId));
-        List<UserConversation> conversations = userConversationsRepository.findAllByConversationIdAndUserIdNot(conversationId, senderId);
+        List<UserConversation> conversations = userConversationsRepository.findAllByConversationId(conversationId);
         List<UserConversation> saves = conversations.stream().peek(conversation -> {
             Message message = mapper.map(request, Message.class);
             conversation.setLastMessage(message);
             conversation.setUnreadCount(conversation.getUnreadCount() + 1);
-//            if (!CollectionUtils.isEmpty(userIds)) {
-//                int count = conversation.getUnreadCount();
-//                conversation.setUnreadCount(!userIds.contains(request.getSenderId()) ? count + 1 : count);
-//            }
         }).toList();
         return userConversationsRepository.saveAll(saves).stream().map(e -> mapper.map(e, UserConversationResDTO.class)).toList();
     }
