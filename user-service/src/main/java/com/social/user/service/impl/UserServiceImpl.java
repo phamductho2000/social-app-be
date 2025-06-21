@@ -1,5 +1,7 @@
 package com.social.user.service.impl;
 
+import com.social.common.exception.AppException;
+import com.social.common.log.Logger;
 import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.user.constants.UserStatus;
@@ -36,6 +38,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     private final MongoTemplate mongoTemplate;
+
+    private final Logger logger;
 
     @Override
     public UserResponseDTO create(UserRequestDTO request) throws UserServiceException {
@@ -97,9 +101,9 @@ public class UserServiceImpl implements UserService {
         }
 
         return CustomPageScroll.buildPage(result.getContent()
-                                .stream().map(e -> mapper.map(e, UserResponseDTO.class))
-                                .toList(),
-                        result.size(), extendData);
+                        .stream().map(e -> mapper.map(e, UserResponseDTO.class))
+                        .toList(),
+                result.size(), extendData);
     }
 
     @Override
@@ -130,5 +134,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAllByUserIdIn(ids).stream()
                 .map(m -> mapper.map(m, UserResponseDTO.class))
                 .toList();
+    }
+
+    @Override
+    public UserResponseDTO getCurrentUserLogin() throws AppException {
+        return userRepository.findFirstByUserId(logger.getUserId())
+                .map(e -> mapper.map(e, UserResponseDTO.class))
+                .orElseThrow(() -> new AppException("NOT_FOUND"));
     }
 }

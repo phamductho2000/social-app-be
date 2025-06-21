@@ -58,6 +58,11 @@ spring:
           predicates:
             - Path=/api/keycloak/**
 
+        - id: storage-service
+          uri: lb://storage-service
+          predicates:
+            - Path=/api/storage/**
+
 eureka:
   instance:
     preferIpAddress: true

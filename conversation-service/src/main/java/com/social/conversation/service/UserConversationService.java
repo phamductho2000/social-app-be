@@ -5,6 +5,7 @@ import com.social.common.page.CustomPageScroll;
 import com.social.conversation.constants.ConversationType;
 import com.social.conversation.domain.Conversation;
 import com.social.conversation.dto.request.ConversationReqDTO;
+import com.social.conversation.dto.request.MarkReadMessageReqDto;
 import com.social.conversation.dto.request.SearchConversationRequestDto;
 import com.social.conversation.dto.response.MessageResDTO;
 import com.social.conversation.dto.response.UserConversationResDTO;
@@ -22,4 +23,6 @@ public interface UserConversationService {
     CustomPageScroll<UserConversationResDTO> search(SearchConversationRequestDto request) throws AppException;
 
     List<UserConversationResDTO> handleNewMessage(MessageResDTO request) throws ChatServiceException;
+
+    void updateMarkRead(MarkReadMessageReqDto request) throws AppException;
 }

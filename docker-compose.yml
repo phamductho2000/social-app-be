@@ -110,13 +110,36 @@ services:
       - "3000:3000"
     networks:
       - loki
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9005:9000"   # MinIO API
+      - "9001:9001"   # MinIO Console (Web UI)
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      # Optional: Set custom access key and secret key
+      # MINIO_ACCESS_KEY: your-access-key
+      # MINIO_SECRET_KEY: your-secret-key
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - minio_network
+    restart: unless-stopped
+
 volumes:
   postgres_data:  # Uncommented for data persistence
   elasticsearch-data:
+  minio_data:
 networks:
   default:
     driver: bridge
 #  elk:
 #    driver: bridge
   loki:
+    driver: bridge
+  minio_network:
     driver: bridge

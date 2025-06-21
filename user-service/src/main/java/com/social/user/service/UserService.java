@@ -1,5 +1,6 @@
 package com.social.user.service;
 
+import com.social.common.exception.AppException;
 import com.social.common.page.CustomPageScroll;
 import com.social.user.dto.UserRequestDTO;
 import com.social.user.dto.UserResponseDTO;
@@ -20,4 +21,6 @@ public interface UserService {
     UserResponseDTO getUserByUsername(String username) throws UserServiceException;
 
     List<UserResponseDTO> getUsersByIds(List<String> ids) throws UserServiceException;
+
+    UserResponseDTO getCurrentUserLogin() throws AppException;
 }

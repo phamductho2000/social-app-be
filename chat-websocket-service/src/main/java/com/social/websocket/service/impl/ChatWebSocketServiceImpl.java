@@ -45,16 +45,14 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 RedisSessionInfo sessionInfo = redisSessionInfoService.get(sessionId);
                 String messageId = new ObjectId().toString();
                 chatMessage.setId(messageId);
-                chatMessage.setSenderId(sessionInfo.getUserId());
-                chatMessage.setCreatedBy(sessionInfo.getUserName());
-                chatMessage.setUpdatedBy(sessionInfo.getUserName());
+                chatMessage.setSenderId(chatMessage.getSenderId());
+                chatMessage.setSenderName(chatMessage.getSenderName());
+                chatMessage.setUsername(sessionInfo.getUserName());
                 kafkaTemplate.send("SAVE_NEW_MESSAGE", objectMapper.writeValueAsString(chatMessage));
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-
     }
 
     @Override

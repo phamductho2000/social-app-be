@@ -1,7 +1,9 @@
 package com.social.message.controller;
 
 import com.social.common.dto.ApiResponse;
+import com.social.common.exception.AppException;
 import com.social.common.page.CustomPageScroll;
+import com.social.message.dto.request.MarkReactionMessageReqDto;
 import com.social.message.dto.request.MessageReqDTO;
 import com.social.message.dto.request.SearchMessageRequestDto;
 import com.social.message.dto.response.MessageResDTO;
@@ -35,5 +37,10 @@ public class MessageController {
     @PostMapping("/mark-read-messages")
     public ApiResponse<Boolean> markReadMessages(@RequestBody List<String> ids) throws ChatServiceException {
         return ApiResponse.success(messagesService.markReadMessages(ids));
+    }
+
+    @PostMapping("/mark-reaction")
+    public ApiResponse<Boolean> markReaction(@RequestBody MarkReactionMessageReqDto request) throws AppException {
+        return ApiResponse.success(messagesService.markReaction(request));
     }
 }

@@ -1,5 +1,6 @@
 package com.social.conversation.dto.response;
 
+import com.social.conversation.constants.MessageStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ public class MessageResDTO {
     private String content;
     private String contentType;
     private List<AttachmentDTO> attachments;
+    private MessageStatus status;
     private Instant createdAt;
     private Instant updatedAt;
 }

@@ -11,25 +11,25 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class JwtWebFilter implements WebFilter {
 
     private final JwtVerifier jwtVerifier;
+
+    private final List<String> whitelist = List.of("/api/auth/register", "/api/auth/login", "/api/auth/refreshToken");
     
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
         String token = "";
 
-        if (path.contains("/api/auth/register")) {
-            return chain.filter(exchange);
-        }
-
         if (path.startsWith("/ws")) {
             token = exchange.getRequest().getQueryParams().getFirst("token");
         } else {
-            if (path.contains("/api/auth/login")) {
+            if (whitelist.contains(path)) {
                 return chain.filter(exchange);
             }
             String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
@@ -59,14 +59,14 @@ public class JwtWebFilter implements WebFilter {
             DataBuffer buffer = exchange.getResponse()
                     .bufferFactory()
                     .wrap("Invalid JWT: ".getBytes());
-            return exchange.getResponse().writeWith(Mono.just(buffer));
+            return exchange.getResponse().setComplete();
         }
 
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         DataBuffer buffer = exchange.getResponse()
                 .bufferFactory()
                 .wrap("Invalid JWT: ".getBytes());
-        return exchange.getResponse().writeWith(Mono.just(buffer));
+        return exchange.getResponse().setComplete();
     }
 }
 

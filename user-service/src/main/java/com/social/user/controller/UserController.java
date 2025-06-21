@@ -1,6 +1,7 @@
 package com.social.user.controller;
 
 import com.social.common.dto.ApiResponse;
+import com.social.common.exception.AppException;
 import com.social.common.page.CustomPageScroll;
 import com.social.user.dto.UserRequestDTO;
 import com.social.user.dto.UserResponseDTO;
@@ -47,5 +48,10 @@ public class UserController {
     @PostMapping("/get-users-by-ids")
     public ApiResponse<List<UserResponseDTO>> getUsersByIds(@RequestBody List<String> ids) throws UserServiceException {
         return ApiResponse.success(userService.getUsersByIds(ids));
+    }
+
+    @GetMapping("/get-current-user-login")
+    public ApiResponse<UserResponseDTO> getCurrentUserLogin() throws AppException {
+        return ApiResponse.success(userService.getCurrentUserLogin());
     }
 }

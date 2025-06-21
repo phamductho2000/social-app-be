@@ -32,10 +32,10 @@ public class MessageConsumer {
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
             req = objectMapper.readValue(message, MessageReqDTO.class);
             MessageResDTO res = messageService.save(req);
-            if (Objects.nonNull(res)) {
-                String payload = objectMapper.writeValueAsString(res);
-                kafkaTemplate.send("SAVE_NEW_MESSAGE_SUCCESS", payload);
-            }
+//            if (Objects.nonNull(res)) {
+//                String payload = objectMapper.writeValueAsString(res);
+//                kafkaTemplate.send("SAVE_NEW_MESSAGE_SUCCESS", payload);
+//            }
         } catch (JsonProcessingException | ChatServiceException e) {
             kafkaTemplate.send("SAVE_NEW_MESSAGE_FAILED", message);
             throw new RuntimeException(e);

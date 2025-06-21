@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserConversationRepository extends MongoRepository<UserConversation, String> {
-    Optional<UserConversation> findByConversationIdAndUserId(ObjectId conversationId, String userId);
+    Optional<UserConversation> findByConversationIdAndUserId(String conversationId, String userId);
 
     List<UserConversation> findAllByConversationIdAndUserIdNot(String conversationId, String userId);
 

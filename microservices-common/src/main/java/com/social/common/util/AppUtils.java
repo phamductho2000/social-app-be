@@ -2,6 +2,7 @@ package com.social.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Getter;
 import org.springframework.data.domain.ScrollPosition;
 
@@ -19,6 +20,7 @@ public class AppUtils {
 
     public static String encodeSearchAfter(ScrollPosition scrollPosition) {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         try {
             String json = mapper.writeValueAsString(scrollPosition);
             return Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
@@ -29,6 +31,7 @@ public class AppUtils {
 
     public static ScrollPosition decodeSearchAfter(String value) {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         try {
             String json = new String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8);
             KeysetScrollPositionDto dto = mapper.readValue(json, KeysetScrollPositionDto.class);

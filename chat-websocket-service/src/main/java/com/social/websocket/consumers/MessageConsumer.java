@@ -31,28 +31,25 @@ public class MessageConsumer {
     private final ChatWebSocketService chatWebSocketService;
 
     @KafkaListener(topics = "SAVE_NEW_MESSAGE_SUCCESS", groupId = "chat-app")
-    public void listenMessage(String message) {
+    public void listenMessage(String payload) {
         MessageResDTO res;
         try {
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-            res = objectMapper.readValue(message, MessageResDTO.class);
+            res = objectMapper.readValue(payload, MessageResDTO.class);
             messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + res.getConversationId(), res);
-//            kafkaTemplate.send("NEW_MESSAGE_CONVERSATION", message);
         } catch (JsonProcessingException e) {
-//            kafkaTemplate.send("SAVE_MESSAGE_FAILED", message);
             throw new RuntimeException(e);
         }
+//        messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + payload.getConversationId(), payload);
     }
 
     @KafkaListener(topics = "UPDATE_CONVERSATION_SUCCESS", groupId = "chat-app-1")
-    public void listenConversation(String message) {
-        List<UserConversationResDTO> res;
+    public void listenConversation(String payload) {
+        UserConversationResDTO res;
         try {
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-            res = objectMapper.readValue(message, new TypeReference<>() {
-            });
-//            messagingTemplate.convertAndSend(TOPIC_LISTEN_CHANGE_CONVERSATION, res);
-            chatWebSocketService.sendConversationChange(res);
+            res = objectMapper.readValue(payload, UserConversationResDTO.class);
+            chatWebSocketService.sendConversationChange(List.of(res));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

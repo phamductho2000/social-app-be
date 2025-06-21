@@ -12,7 +12,7 @@ spring:
       #      password: root
       #      database: product-db
       #      port: 27017
-      uri: mongodb://localhost:27017/conversation
+      uri: mongodb://localhost:27017/conversation?replicaSet=rs0
 eureka:
   instance:
     preferIpAddress: true

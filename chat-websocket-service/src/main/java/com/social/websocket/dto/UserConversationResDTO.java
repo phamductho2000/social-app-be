@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -21,4 +23,5 @@ public class UserConversationResDTO {
     private Boolean notifications;
     private Boolean isPinned;
     private MessageResDTO lastMessage;
+    private Instant createdAt;
 }

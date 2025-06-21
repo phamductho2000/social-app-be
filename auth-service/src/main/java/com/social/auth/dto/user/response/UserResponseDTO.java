@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 public class UserResponseDTO {
     private String id;
 
+    private String userId;
+
     private String username;
 
     private String firstName;

@@ -1,17 +1,22 @@
 package com.social.message.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.social.common.exception.AppException;
 import com.social.common.log.Logger;
 import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.message.constant.MessageStatus;
 import com.social.message.domain.Message;
+import com.social.message.domain.Reaction;
+import com.social.message.dto.request.MarkReactionMessageReqDto;
+import com.social.message.dto.request.MarkReadMessageReqDto;
 import com.social.message.dto.request.MessageReqDTO;
 import com.social.message.dto.request.SearchMessageRequestDto;
 import com.social.message.dto.response.MessageResDTO;
 import com.social.message.exception.ChatServiceException;
 import com.social.message.repo.MessageRepository;
 import com.social.message.service.MessageService;
-import com.social.message.service.UnreadMessagesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -26,11 +31,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Instant;
+import java.util.*;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.social.common.util.AppUtils.decodeSearchAfter;
 import static com.social.common.util.AppUtils.encodeSearchAfter;
 
@@ -47,11 +51,9 @@ public class MessageServiceImpl implements MessageService {
 
     private final MongoTemplate mongoTemplate;
 
-    private final UnreadMessagesService unreadMessagesService;
-
-    private final KafkaTemplate<String, String> kafkaTemplate;
-
     private final Logger logger;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public MessageResDTO save(MessageReqDTO req) throws ChatServiceException {
@@ -59,7 +61,11 @@ public class MessageServiceImpl implements MessageService {
         if (Objects.nonNull(req)) {
             Message chatMessage = modelMapper.map(req, Message.class);
             chatMessage.setConversationId(req.getConversationId());
-//            chatMessage.setSenderId(logger.getUserId());
+            chatMessage.setStatus(MessageStatus.SENT);
+            chatMessage.setCreatedAt(Instant.now());
+            chatMessage.setCreatedBy(req.getUsername());
+            chatMessage.setUpdatedAt(Instant.now());
+            chatMessage.setUpdatedBy(req.getUsername());
             return modelMapper.map(messagesRepository.save(chatMessage), MessageResDTO.class);
         }
         throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
@@ -103,11 +109,59 @@ public class MessageServiceImpl implements MessageService {
         if (CollectionUtils.isEmpty(ids)) {
             throw new ChatServiceException("Payload empty", "PAYLOAD_EMPTY");
         }
+        List<MessageResDTO> res = messagesRepository.saveAll(messagesRepository.findAllById(ids)
+                        .stream().peek(p -> p.setStatus(MessageStatus.SEEN)).toList())
+                .stream().map(e -> modelMapper.map(e, MessageResDTO.class)).toList();
 
-        messagesRepository.saveAll(messagesRepository.findAllById(ids)
-                .stream()
-                .peek(p -> p.setStatus(MessageStatus.READ))
-                .toList());
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try {
+            kafkaTemplate.send("MARK_READ_MESSAGE_SUCCESS", objectMapper.writeValueAsString(MarkReadMessageReqDto.builder()
+                    .userId(logger.getUserId())
+                    .conversationId(res.getFirst().getConversationId())
+                    .size(res.size())
+                    .build()));
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex);
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean markReaction(MarkReactionMessageReqDto request) throws AppException {
+        Message message = messagesRepository.findById(request.getMessageId())
+                .orElseThrow(() -> new AppException("NOT_FOUND"));
+
+        String userId = logger.getUserId();
+        String emoji = request.getEmoji();
+        String unified = request.getUnified();
+
+        Reaction newReaction = Reaction.builder()
+                .userId(userId)
+                .username(logger.getUserName())
+                .fullName(request.getFullName())
+                .emoji(emoji)
+                .unified(unified)
+                .build();
+
+        List<Reaction> reactions = new ArrayList<>(Optional.ofNullable(message.getReactions())
+                .orElseGet(ArrayList::new));
+
+        Optional<Reaction> existing = reactions.stream()
+                .filter(r -> r.getUserId().equals(userId))
+                .findFirst();
+
+        if (existing.isPresent()) {
+            Reaction reaction = existing.get();
+            reaction.setEmoji(emoji);
+            reaction.setUnified(unified);
+        } else {
+            reactions.add(newReaction);
+        }
+
+        message.setReactions(reactions);
+        messagesRepository.save(message);
+
         return true;
     }
 }

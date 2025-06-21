@@ -4,21 +4,17 @@ import com.social.common.exception.AppException;
 import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.conversation.client.UserClient;
-import com.social.conversation.constants.ConversationType;
 import com.social.conversation.domain.Conversation;
 import com.social.conversation.domain.Message;
 import com.social.conversation.domain.UserConversation;
-import com.social.conversation.dto.request.ConversationReqDTO;
-import com.social.conversation.dto.request.MessageReqDTO;
+import com.social.conversation.dto.request.MarkReadMessageReqDto;
 import com.social.conversation.dto.request.SearchConversationRequestDto;
 import com.social.conversation.dto.response.MessageResDTO;
 import com.social.conversation.dto.response.UserConversationResDTO;
 import com.social.conversation.dto.response.UserResponseDTO;
 import com.social.conversation.exception.ChatServiceException;
-import com.social.common.dto.ApiResponse;
 import com.social.common.log.Logger;
 import com.social.conversation.repo.UserConversationRepository;
-import com.social.conversation.service.ParticipantService;
 import com.social.conversation.service.UserConversationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -140,8 +132,23 @@ public class UserConversationServiceImpl implements UserConversationService {
         List<UserConversation> saves = conversations.stream().peek(conversation -> {
             Message message = mapper.map(request, Message.class);
             conversation.setLastMessage(message);
-            conversation.setUnreadCount(conversation.getUnreadCount() + 1);
+            if (!conversation.getUserId().equals(request.getSenderId())) {
+                conversation.setUnreadCount(conversation.getUnreadCount() + 1);
+            }
         }).toList();
         return userConversationsRepository.saveAll(saves).stream().map(e -> mapper.map(e, UserConversationResDTO.class)).toList();
+    }
+
+    @Override
+    public void updateMarkRead(MarkReadMessageReqDto request) throws AppException {
+        if (Objects.isNull(request)) {
+            throw new AppException("UserConversationsService: Empty payload", "EMPTY_PAYLOAD");
+        }
+
+        UserConversation update = userConversationsRepository.findByConversationIdAndUserId(request.getConversationId(), request.getUserId())
+                .orElseThrow(() -> new AppException("UserConversationsService: User conversation not found", "USER_CONVERSATION_NOT_FOUND"));
+
+        update.setUnreadCount(update.getUnreadCount() - request.getSize());
+        userConversationsRepository.save(update);
     }
 }
