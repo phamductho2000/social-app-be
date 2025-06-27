@@ -1,5 +1,6 @@
 package com.social.websocket.dto;
 
+import com.social.websocket.dto.request.MessageDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

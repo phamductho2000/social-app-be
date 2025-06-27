@@ -1,7 +1,6 @@
 package com.social.websocket.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.social.websocket.dto.MessageDTO;
 import com.social.websocket.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

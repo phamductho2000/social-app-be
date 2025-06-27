@@ -1,4 +1,4 @@
-package com.social.websocket.dto;
+package com.social.websocket.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -14,11 +14,10 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageDTO {
     private String id;
-//    private String messageId;
+    private String tempId;
     private String conversationId;
     private String senderId;
     private String senderName;
-    private List<String> recipientIds;
     private String content;
     private String contentType;
     private String mediaUrl;
@@ -26,5 +25,5 @@ public class MessageDTO {
     private Boolean isRead;
     private List<MultipartFile> attachments;
     private String username;
-    private MessageDTO reply;
+    private MessageDTO replyTo;
 }

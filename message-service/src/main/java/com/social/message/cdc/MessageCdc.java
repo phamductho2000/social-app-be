@@ -4,10 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mongodb.client.model.changestream.FullDocument;
-import com.social.message.dto.response.MessagePayloadDto;
+import com.social.message.dto.request.MessageReqDTO;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -42,8 +43,16 @@ public class MessageCdc {
                                 ObjectMapper objectMapper = new ObjectMapper();
                                 objectMapper.registerModule(new JavaTimeModule());
                                 try {
-                                    MessagePayloadDto payload = objectMapper.readValue(fullDoc.toJson(), MessagePayloadDto.class);
-                                    kafkaTemplate.send("SAVE_NEW_MESSAGE_SUCCESS", objectMapper.writeValueAsString(payload));
+                                    MessageReqDTO payload = objectMapper.readValue(fullDoc.toJson(), MessageReqDTO.class);
+                                    payload.setId(fullDoc.getObjectId("_id").toString());
+
+                                    ProducerRecord<String, String> record = new ProducerRecord<>(
+                                            "SENT_MESSAGE",
+                                            null,
+                                            payload.getConversationId(),
+                                            objectMapper.writeValueAsString(payload)
+                                    );
+                                    kafkaTemplate.send(record);
                                     log.info("Message saved to mongo");
                                 } catch (JsonProcessingException e) {
 //                                    throw new RuntimeException(e);

@@ -1,13 +1,10 @@
 package com.social.websocket.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.social.websocket.domain.RedisSessionInfo;
-import com.social.websocket.dto.MessageDTO;
 import com.social.websocket.dto.UserConversationResDTO;
 import com.social.websocket.service.ChatWebSocketService;
 import com.social.websocket.service.RedisSessionInfoService;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -38,17 +35,11 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         if (payload instanceof byte[]) {
             try {
                 String json = new String((byte[]) payload, StandardCharsets.UTF_8);
+//
+//                ObjectMapper mapper = new ObjectMapper();
+//                MessageDTO chatMessage = mapper.readValue(json, MessageDTO.class);
 
-                ObjectMapper mapper = new ObjectMapper();
-                MessageDTO chatMessage = mapper.readValue(json, MessageDTO.class);
-
-                RedisSessionInfo sessionInfo = redisSessionInfoService.get(sessionId);
-                String messageId = new ObjectId().toString();
-                chatMessage.setId(messageId);
-                chatMessage.setSenderId(chatMessage.getSenderId());
-                chatMessage.setSenderName(chatMessage.getSenderName());
-                chatMessage.setUsername(sessionInfo.getUserName());
-                kafkaTemplate.send("SAVE_NEW_MESSAGE", objectMapper.writeValueAsString(chatMessage));
+                kafkaTemplate.send("SENDING_MESSAGE", json);
             } catch (Exception e) {
                 e.printStackTrace();
             }

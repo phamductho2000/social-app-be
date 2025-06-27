@@ -1,12 +1,12 @@
 package com.social.websocket.consumers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social.websocket.dto.MessageResDTO;
 import com.social.websocket.dto.UserConversationResDTO;
 import com.social.websocket.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_CHANGE_CONVERSATION;
 import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_MESSAGE;
 
 @Component
@@ -30,17 +29,17 @@ public class MessageConsumer {
 
     private final ChatWebSocketService chatWebSocketService;
 
-    @KafkaListener(topics = "SAVE_NEW_MESSAGE_SUCCESS", groupId = "chat-app")
-    public void listenMessage(String payload) {
-        MessageResDTO res;
-        try {
-            objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-            res = objectMapper.readValue(payload, MessageResDTO.class);
-            messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + res.getConversationId(), res);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-//        messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + payload.getConversationId(), payload);
+    @KafkaListener(topics = "SENT_MESSAGE", groupId = "chat-app-90")
+    public void listenMessage(ConsumerRecord<String, Object> record) {
+//        MessageResDTO res;
+//        try {
+//            objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+//            res = objectMapper.readValue(payload, MessageResDTO.class);
+//            messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + res.getConversationId(), res);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
+        messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + record.key(), record.value());
     }
 
     @KafkaListener(topics = "UPDATE_CONVERSATION_SUCCESS", groupId = "chat-app-1")

@@ -1,7 +1,6 @@
 package com.social.websocket.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.social.websocket.dto.MessageDTO;
 import com.social.websocket.dto.UserConversationResDTO;
 import org.springframework.messaging.Message;
 

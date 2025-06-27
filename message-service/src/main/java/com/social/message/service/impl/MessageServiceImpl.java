@@ -63,9 +63,9 @@ public class MessageServiceImpl implements MessageService {
             chatMessage.setConversationId(req.getConversationId());
             chatMessage.setStatus(MessageStatus.SENT);
             chatMessage.setCreatedAt(Instant.now());
-            chatMessage.setCreatedBy(req.getUsername());
+            chatMessage.setCreatedBy(req.getUserName());
             chatMessage.setUpdatedAt(Instant.now());
-            chatMessage.setUpdatedBy(req.getUsername());
+            chatMessage.setUpdatedBy(req.getUserName());
             return modelMapper.map(messagesRepository.save(chatMessage), MessageResDTO.class);
         }
         throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
@@ -110,7 +110,7 @@ public class MessageServiceImpl implements MessageService {
             throw new ChatServiceException("Payload empty", "PAYLOAD_EMPTY");
         }
         List<MessageResDTO> res = messagesRepository.saveAll(messagesRepository.findAllById(ids)
-                        .stream().peek(p -> p.setStatus(MessageStatus.SEEN)).toList())
+                        .stream().peek(p -> p.setStatus(MessageStatus.READ)).toList())
                 .stream().map(e -> modelMapper.map(e, MessageResDTO.class)).toList();
 
         ObjectMapper objectMapper = new ObjectMapper();
