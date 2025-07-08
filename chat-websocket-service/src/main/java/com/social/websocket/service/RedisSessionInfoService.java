@@ -1,7 +1,6 @@
 package com.social.websocket.service;
 
 import com.social.websocket.domain.RedisSessionInfo;
-import com.social.websocket.dto.SendMessageDto;
 
 import java.net.UnknownHostException;
 
@@ -10,7 +9,7 @@ public interface RedisSessionInfoService {
 
     void remove(String conversationId);
 
-    void send(SendMessageDto request);
+//    void send(SendMessageDto request);
 
     RedisSessionInfo get(String sessionId);
 }

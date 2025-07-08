@@ -1,9 +1,9 @@
 package com.social.message.service.impl;
 
 import com.social.message.repo.MessageReadStatusRepository;
-import com.social.message.repo.MessageRepository;
+import com.social.message.repo.MessageHistoryRepository;
 import com.social.message.service.MessageReadStatusService;
-import com.social.message.service.MessageService;
+import com.social.message.service.MessageHistoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +27,10 @@ public class MessageReadStatusServiceImpl implements MessageReadStatusService {
 
 
     @Autowired
-    private MessageRepository messageRepository;
+    private MessageHistoryRepository messageHistoryRepository;
 
     @Autowired
-    private MessageService messageService;
+    private MessageHistoryService messageHistoryService;
 
 //    @Override
 //    public void saveMessageReadStatus(MessageReqDTO req) {

@@ -6,6 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.Instant;
 
 @Data
 @AllArgsConstructor
@@ -13,10 +17,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Reaction {
+@Document(value = "reaction_history")
+public class ReactionHistory {
+    @Id
+    private String id;
+    private String messageId;
     private String userId;
-    private String username;
-    private String fullName;
     private String emoji;
     private String unified;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

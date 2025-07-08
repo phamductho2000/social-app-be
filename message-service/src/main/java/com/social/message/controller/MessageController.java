@@ -3,12 +3,12 @@ package com.social.message.controller;
 import com.social.common.dto.ApiResponse;
 import com.social.common.exception.AppException;
 import com.social.common.page.CustomPageScroll;
-import com.social.message.dto.request.MarkReactionMessageReqDto;
+import com.social.message.dto.request.ReactionHistoryReqDto;
 import com.social.message.dto.request.MessageReqDTO;
 import com.social.message.dto.request.SearchMessageRequestDto;
 import com.social.message.dto.response.MessageResDTO;
 import com.social.message.exception.ChatServiceException;
-import com.social.message.service.MessageService;
+import com.social.message.service.MessageHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageController {
 
-    private final MessageService messagesService;
+    private final MessageHistoryService messagesService;
 
     @PostMapping("/save")
     public ApiResponse<MessageResDTO> saveMessage(@RequestBody MessageReqDTO request) throws ChatServiceException {
@@ -37,10 +37,5 @@ public class MessageController {
     @PostMapping("/mark-read-messages")
     public ApiResponse<Boolean> markReadMessages(@RequestBody List<String> ids) throws ChatServiceException {
         return ApiResponse.success(messagesService.markReadMessages(ids));
-    }
-
-    @PostMapping("/mark-reaction")
-    public ApiResponse<Boolean> markReaction(@RequestBody MarkReactionMessageReqDto request) throws AppException {
-        return ApiResponse.success(messagesService.markReaction(request));
     }
 }

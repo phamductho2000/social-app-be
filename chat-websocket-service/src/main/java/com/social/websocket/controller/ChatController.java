@@ -30,20 +30,6 @@ public class ChatController {
 //        messagingTemplate.convertAndSend("/topic/status-users", Objects.requireNonNull(redisService.getDataSet("USER_ONLINE")));
     }
 
-    @MessageMapping("/register/{userId}")
-    public void registerUser(@DestinationVariable String userId) {
-//        redisService.saveDataSet("USER_ONLINE", userId);
-        // Gửi danh sách người dùng online tới tất cả các client
-//        messagingTemplate.convertAndSend("/topic/status-users", Objects.requireNonNull(redisService.getDataSet("USER_ONLINE")));
-    }
-
-    @MessageMapping("/unregister/{userId}")
-    public void unregisterUser(@DestinationVariable String userId) {
-//        redisService.deleteDataSet("USER_ONLINE", userId);
-        // Gửi danh sách người dùng online tới tất cả các client
-//        messagingTemplate.convertAndSend("/topic/status-users", Objects.requireNonNull(redisService.getDataSet("USER_ONLINE")));
-    }
-
     @MessageMapping("/connect-conversation/{conversationId}")
     public void connectConversation(@DestinationVariable String conversationId, String userId) {
         redisTemplate.opsForSet().add(String.format("CONNECT_CONVERSATION:%s", conversationId), userId);
@@ -54,14 +40,13 @@ public class ChatController {
         redisTemplate.opsForSet().remove(String.format("CONNECT_CONVERSATION:%s", conversationId), userId);
     }
 
-    @MessageMapping("/chat/send-message")
-    public void sendMessageToConversation(Message<Object> message) throws JsonProcessingException {
-//        if (!messageDTO.getType().equals("TYPING")) {
-//            MessagesResDTO messagesResDTO = chatWebSocketService.sendMessage(messageDTO);
-//            messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, messagesResDTO);
-//        } else {
-//            messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, messageDTO);
-//        }
+    @MessageMapping("/chat/message/send")
+    public void sendMessageToConversation(String message) throws JsonProcessingException {
+        chatWebSocketService.sendMessage(message);
+    }
+
+    @MessageMapping("/chat/message/react")
+    public void reactMessageToConversation(String message) throws JsonProcessingException {
         chatWebSocketService.sendMessage(message);
     }
 }

@@ -2,9 +2,13 @@ package com.social.message.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.social.message.constant.MessageStatus;
-import com.social.message.domain.Reaction;
+import com.social.message.constant.MessageTypeStatus;
+import com.social.message.domain.Attachment;
+import com.social.message.domain.Mention;
+import com.social.message.domain.ReactionHistory;
 import com.social.message.domain.Reply;
 import com.social.message.parse.MongoDateDeserializer;
 import com.social.message.parse.ObjectIdDeserializer;
@@ -19,19 +23,22 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class MessagePayloadDto {
     @JsonDeserialize(using = ObjectIdDeserializer.class)
     @JsonAlias("_id")
     private String id;
+    private String tempId;
     private String conversationId;
     private String senderId;
-    private String senderName;
-    private MessageStatus status;
+    private String userName;
     private String content;
-    private String contentType;
-    private List<AttachmentDTO> attachments;
-    private List<Reaction> reactions;
-    private Reply reply;
+    private MessageTypeStatus type;
+    private MessageStatus status;
     @JsonDeserialize(using = MongoDateDeserializer.class)
-    private Instant createdAt;
+    private Instant sentAt;
+    private List<Attachment> attachments;
+    private List<ReactionHistory> reactionHistories;
+    private List<Mention> mentions;
+    private Reply replyTo;
 }

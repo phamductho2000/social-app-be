@@ -2,21 +2,21 @@ package com.social.message.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.social.common.exception.AppException;
 import com.social.common.log.Logger;
 import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.message.constant.MessageStatus;
-import com.social.message.domain.Message;
-import com.social.message.domain.Reaction;
-import com.social.message.dto.request.MarkReactionMessageReqDto;
+import com.social.message.domain.MessageHistory;
+import com.social.message.domain.ReactionHistory;
 import com.social.message.dto.request.MarkReadMessageReqDto;
 import com.social.message.dto.request.MessageReqDTO;
+import com.social.message.dto.request.ReactionHistoryReqDto;
 import com.social.message.dto.request.SearchMessageRequestDto;
 import com.social.message.dto.response.MessageResDTO;
 import com.social.message.exception.ChatServiceException;
-import com.social.message.repo.MessageRepository;
-import com.social.message.service.MessageService;
+import com.social.message.repo.MessageHistoryRepository;
+import com.social.message.service.MessageHistoryService;
+import com.social.message.service.ReactionHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -43,11 +43,11 @@ import static com.social.common.util.AppUtils.encodeSearchAfter;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class MessageServiceImpl implements MessageService {
+public class MessageHistoryServiceImpl implements MessageHistoryService {
 
     private final ModelMapper modelMapper;
 
-    private final MessageRepository messagesRepository;
+    private final MessageHistoryRepository messageHistoryRepository;
 
     private final MongoTemplate mongoTemplate;
 
@@ -55,18 +55,46 @@ public class MessageServiceImpl implements MessageService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
+    private final ReactionHistoryService reactionHistoryService;
+
     @Override
-    public MessageResDTO save(MessageReqDTO req) throws ChatServiceException {
-        log.info("save: {}", req);
-        if (Objects.nonNull(req)) {
-            Message chatMessage = modelMapper.map(req, Message.class);
-            chatMessage.setConversationId(req.getConversationId());
-            chatMessage.setStatus(MessageStatus.SENT);
-            chatMessage.setCreatedAt(Instant.now());
-            chatMessage.setCreatedBy(req.getUserName());
-            chatMessage.setUpdatedAt(Instant.now());
-            chatMessage.setUpdatedBy(req.getUserName());
-            return modelMapper.map(messagesRepository.save(chatMessage), MessageResDTO.class);
+    public MessageResDTO save(MessageReqDTO request) throws ChatServiceException {
+        log.info("save: {}", request);
+        if (Objects.nonNull(request)) {
+            MessageHistory chatMessageHistory = modelMapper.map(request, MessageHistory.class);
+            chatMessageHistory.setConversationId(request.getConversationId());
+            chatMessageHistory.setStatus(MessageStatus.SENT);
+            chatMessageHistory.setCreatedAt(Instant.now());
+            chatMessageHistory.setCreatedBy(request.getUserName());
+            chatMessageHistory.setUpdatedAt(Instant.now());
+            chatMessageHistory.setUpdatedBy(request.getUserName());
+            return modelMapper.map(messageHistoryRepository.save(chatMessageHistory), MessageResDTO.class);
+        }
+        throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
+    }
+
+    @Override
+    public MessageResDTO update(MessageReqDTO request) throws ChatServiceException {
+        log.info("update: {}", request);
+        if (Objects.nonNull(request) && StringUtils.isNotEmpty(request.getId())) {
+            MessageHistory messageHistory = messageHistoryRepository.findById(request.getId()).orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
+            if (Objects.nonNull(request.getReactionHistory())) {
+                ReactionHistory reactionHistory = request.getReactionHistory();
+                Map<String, Long> reaction = messageHistory.getSummaryReaction();
+                long count;
+                if (reaction.containsKey(reactionHistory.getEmoji())) {
+                    count = reaction.get(reactionHistory.getEmoji()) + 1;
+                } else {
+                    count = 1;
+                }
+                reaction.put(reactionHistory.getEmoji(), count);
+                reactionHistoryService.save(ReactionHistoryReqDto.builder()
+                        .messageId(request.getId())
+                        .userId(reactionHistory.getUserId())
+                        .emoji(reactionHistory.getEmoji())
+                        .build());
+            }
+            return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
         }
         throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
     }
@@ -92,7 +120,7 @@ public class MessageServiceImpl implements MessageService {
                 .with(Sort.by(Sort.Direction.DESC, "createdAt"))
                 .with(scrollPosition);
 
-        Window<Message> result = mongoTemplate.scroll(query, Message.class);
+        Window<MessageHistory> result = mongoTemplate.scroll(query, MessageHistory.class);
 
         if (result.hasNext()) {
             scrollPosition = result.positionAt(result.size() - 1);
@@ -109,7 +137,7 @@ public class MessageServiceImpl implements MessageService {
         if (CollectionUtils.isEmpty(ids)) {
             throw new ChatServiceException("Payload empty", "PAYLOAD_EMPTY");
         }
-        List<MessageResDTO> res = messagesRepository.saveAll(messagesRepository.findAllById(ids)
+        List<MessageResDTO> res = messageHistoryRepository.saveAll(messageHistoryRepository.findAllById(ids)
                         .stream().peek(p -> p.setStatus(MessageStatus.READ)).toList())
                 .stream().map(e -> modelMapper.map(e, MessageResDTO.class)).toList();
 
@@ -124,44 +152,6 @@ public class MessageServiceImpl implements MessageService {
         } catch (JsonProcessingException ex) {
             throw new RuntimeException(ex);
         }
-        return true;
-    }
-
-    @Override
-    public Boolean markReaction(MarkReactionMessageReqDto request) throws AppException {
-        Message message = messagesRepository.findById(request.getMessageId())
-                .orElseThrow(() -> new AppException("NOT_FOUND"));
-
-        String userId = logger.getUserId();
-        String emoji = request.getEmoji();
-        String unified = request.getUnified();
-
-        Reaction newReaction = Reaction.builder()
-                .userId(userId)
-                .username(logger.getUserName())
-                .fullName(request.getFullName())
-                .emoji(emoji)
-                .unified(unified)
-                .build();
-
-        List<Reaction> reactions = new ArrayList<>(Optional.ofNullable(message.getReactions())
-                .orElseGet(ArrayList::new));
-
-        Optional<Reaction> existing = reactions.stream()
-                .filter(r -> r.getUserId().equals(userId))
-                .findFirst();
-
-        if (existing.isPresent()) {
-            Reaction reaction = existing.get();
-            reaction.setEmoji(emoji);
-            reaction.setUnified(unified);
-        } else {
-            reactions.add(newReaction);
-        }
-
-        message.setReactions(reactions);
-        messagesRepository.save(message);
-
         return true;
     }
 }

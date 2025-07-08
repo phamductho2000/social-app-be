@@ -8,16 +8,18 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
-@Document(value = "message")
+@Document(value = "message_history")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Message extends BaseDomain {
+public class MessageHistory extends BaseDomain {
     @Id
     private String id;
     private String tempId;
@@ -26,8 +28,9 @@ public class Message extends BaseDomain {
     private String content;
     private MessageTypeStatus type;
     private MessageStatus status;
+    private Instant sentAt;
     private List<Attachment> attachments;
-    private List<Reaction> reactions;
+    private Map<String, Long> summaryReaction;
     private List<Mention> mentions;
     private Reply replyTo;
 }

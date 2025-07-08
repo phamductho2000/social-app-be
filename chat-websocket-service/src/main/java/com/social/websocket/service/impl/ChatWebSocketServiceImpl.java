@@ -1,18 +1,16 @@
 package com.social.websocket.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.social.websocket.dto.UserConversationResDTO;
+import com.social.websocket.dto.request.MessageRequestDto;
 import com.social.websocket.service.ChatWebSocketService;
-import com.social.websocket.service.RedisSessionInfoService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_MESSAGE;
 
 @Service
 @RequiredArgsConstructor
@@ -24,32 +22,21 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    private final RedisSessionInfoService redisSessionInfoService;
-
     @Override
-    public void sendMessage(Message<Object> message) {
-        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(message);
-        String sessionId = accessor.getSessionId();
-        Object payload = message.getPayload();
-
-        if (payload instanceof byte[]) {
-            try {
-                String json = new String((byte[]) payload, StandardCharsets.UTF_8);
-//
-//                ObjectMapper mapper = new ObjectMapper();
-//                MessageDTO chatMessage = mapper.readValue(json, MessageDTO.class);
-
-                kafkaTemplate.send("SENDING_MESSAGE", json);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    public void sendMessage(String payload) {
+        kafkaTemplate.send("SENDING_MESSAGE", payload);
     }
 
     @Override
-    public void sendConversationChange(List<UserConversationResDTO> conversations) {
-        conversations.forEach(conversation -> {
-            messagingTemplate.convertAndSendToUser(conversation.getUsername(), "/queue/conversation", conversation);
-        });
+    public void reactMessage(String payload) {
+        try {
+            MessageRequestDto request = objectMapper.readValue(payload, MessageRequestDto.class);
+            if (StringUtils.isNotEmpty(request.id())) {
+                kafkaTemplate.send("UPDATE_MESSAGE", payload);
+                messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + request.conversationId(), payload);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

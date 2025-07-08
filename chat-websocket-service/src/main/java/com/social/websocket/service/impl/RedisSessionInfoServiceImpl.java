@@ -1,7 +1,6 @@
 package com.social.websocket.service.impl;
 
 import com.social.websocket.domain.RedisSessionInfo;
-import com.social.websocket.dto.SendMessageDto;
 import com.social.websocket.repo.RedisSessionInfoRepository;
 import com.social.websocket.service.RedisSessionInfoService;
 import lombok.RequiredArgsConstructor;
@@ -38,14 +37,14 @@ public class RedisSessionInfoServiceImpl implements RedisSessionInfoService {
         redisSessionInfoRepository.deleteById(sessionId);
     }
 
-    @Override
-    public void send(SendMessageDto request) {
-//        List<RedisSessionInfo> redisSessionInfos = redisSessionInfoRepository.findAllByUserIdIn(request.getUserIds());
-//        redisSessionInfos.forEach(redisSessionInfo -> {
-//            messagingTemplate.convertAndSendToUser(redisSessionInfo.getSessionId(), "/queue/messages", request);
-//        });
-        messagingTemplate.convertAndSend(request.getTopic(), request.getData());
-    }
+//    @Override
+//    public void send(SendMessageDto request) {
+////        List<RedisSessionInfo> redisSessionInfos = redisSessionInfoRepository.findAllByUserIdIn(request.getUserIds());
+////        redisSessionInfos.forEach(redisSessionInfo -> {
+////            messagingTemplate.convertAndSendToUser(redisSessionInfo.getSessionId(), "/queue/messages", request);
+////        });
+//        messagingTemplate.convertAndSend(request.getTopic(), request.getData());
+//    }
 
     @Override
     public RedisSessionInfo get(String sessionId) {

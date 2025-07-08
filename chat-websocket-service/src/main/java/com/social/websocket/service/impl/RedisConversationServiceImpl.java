@@ -1,12 +1,8 @@
 package com.social.websocket.service.impl;
 
 import com.social.websocket.domain.RedisConversation;
-import com.social.websocket.domain.RedisSessionInfo;
-import com.social.websocket.dto.SendMessageDto;
 import com.social.websocket.repo.RedisConversationRepository;
-import com.social.websocket.repo.RedisSessionInfoRepository;
 import com.social.websocket.service.RedisConversationService;
-import com.social.websocket.service.RedisSessionInfoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -40,12 +36,12 @@ public class RedisConversationServiceImpl implements RedisConversationService {
         redisConversationRepository.deleteById(conversationId);
     }
 
-    @Override
-    public void send(SendMessageDto request) {
-//        List<RedisSessionInfo> redisSessionInfos = redisSessionInfoRepository.findAllByUserIdIn(request.getUserIds());
-//        redisSessionInfos.forEach(redisSessionInfo -> {
-//            messagingTemplate.convertAndSendToUser(redisSessionInfo.getSessionId(), "/queue/messages", request);
-//        });
-        messagingTemplate.convertAndSend(request.getTopic(), request.getData());
-    }
+//    @Override
+//    public void send(SendMessageDto request) {
+////        List<RedisSessionInfo> redisSessionInfos = redisSessionInfoRepository.findAllByUserIdIn(request.getUserIds());
+////        redisSessionInfos.forEach(redisSessionInfo -> {
+////            messagingTemplate.convertAndSendToUser(redisSessionInfo.getSessionId(), "/queue/messages", request);
+////        });
+//        messagingTemplate.convertAndSend(request.getTopic(), request.getData());
+//    }
 }

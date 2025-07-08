@@ -10,7 +10,7 @@
         </http>
         <format>
             <label>
-                <pattern>app=message-service,level=%level,thread="%thread"</pattern>
+                <pattern>app=messageHistory-service,level=%level,thread="%thread"</pattern>
                 <readMarkers>true</readMarkers>
             </label>
         </format>
