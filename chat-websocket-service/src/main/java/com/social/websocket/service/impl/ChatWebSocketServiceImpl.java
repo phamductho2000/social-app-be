@@ -32,7 +32,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         try {
             MessageRequestDto request = objectMapper.readValue(payload, MessageRequestDto.class);
             if (StringUtils.isNotEmpty(request.id())) {
-                kafkaTemplate.send("UPDATE_MESSAGE", payload);
+                kafkaTemplate.send("UPDATE_MESSAGE",  payload);
                 messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + request.conversationId(), payload);
             }
         } catch (JsonProcessingException e) {
