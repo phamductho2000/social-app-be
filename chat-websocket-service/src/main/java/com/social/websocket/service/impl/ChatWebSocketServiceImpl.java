@@ -34,6 +34,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
             if (StringUtils.isNotEmpty(request.id())) {
                 kafkaTemplate.send("UPDATE_MESSAGE",  payload);
                 messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + request.conversationId(), payload);
+                System.out.println("abc");
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
