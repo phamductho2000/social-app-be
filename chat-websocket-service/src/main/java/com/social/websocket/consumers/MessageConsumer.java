@@ -1,5 +1,6 @@
 package com.social.websocket.consumers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social.websocket.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,10 @@ public class MessageConsumer {
     private final ChatWebSocketService chatWebSocketService;
 
     @KafkaListener(topics = "SENT_MESSAGE", groupId = "sent_message")
-    public void listenMessage(ConsumerRecord<String, Object> record) {
+    public void listenMessage(ConsumerRecord<String, Object> record)
+        throws JsonProcessingException {
         messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + record.key(), record.value());
+        chatWebSocketService.sendMessageToAllUser(record.key(), objectMapper.writeValueAsString(record.value()));
     }
 
     @KafkaListener(topics = "UPDATE_CONVERSATION_SUCCESS", groupId = "chat-app-1")

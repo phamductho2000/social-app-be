@@ -2,6 +2,7 @@ package com.social.websocket.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.social.websocket.service.ChatWebSocketService;
+import com.social.websocket.service.RedisConversationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
@@ -23,6 +24,8 @@ public class ChatController {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    private final RedisConversationService redisConversationService;
+
     @MessageMapping("/request-online-status")
     public void handleOnlineStatusRequest(String message, SimpMessageHeaderAccessor headerAccessor) {
         String userId = (String) Objects.requireNonNull(headerAccessor.getSessionAttributes()).get("userId");
@@ -32,21 +35,21 @@ public class ChatController {
 
     @MessageMapping("/connect-conversation/{conversationId}")
     public void connectConversation(@DestinationVariable String conversationId, String userId) {
-        redisTemplate.opsForSet().add(String.format("CONNECT_CONVERSATION:%s", conversationId), userId);
+        redisConversationService.add(conversationId, userId);
     }
 
     @MessageMapping("/disconnect-conversation/{conversationId}")
     public void disconnectConversation(@DestinationVariable String conversationId, String userId) {
-        redisTemplate.opsForSet().remove(String.format("CONNECT_CONVERSATION:%s", conversationId), userId);
+        redisConversationService.remove(conversationId, userId);
     }
 
-    @MessageMapping("/chat/message/send")
-    public void sendMessageToConversation(String message) throws JsonProcessingException {
-        chatWebSocketService.sendMessage(message);
+    @MessageMapping("/chat/message/send/{conversationId}")
+    public void sendMessageToConversation(@DestinationVariable String conversationId, String message) {
+        chatWebSocketService.sendMessageToConversation(conversationId, message);
     }
 
-    @MessageMapping("/chat/message/react")
-    public void reactMessageToConversation(String message) throws JsonProcessingException {
-        chatWebSocketService.sendMessage(message);
+    @MessageMapping("/chat/message/react/{conversationId}")
+    public void reactMessageToConversation(@DestinationVariable String conversationId, String message) {
+        chatWebSocketService.reactMessageToConversation(conversationId, message);
     }
 }

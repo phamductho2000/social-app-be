@@ -1,5 +1,6 @@
 package com.social.websocket.domain;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,8 @@ import java.time.Instant;
 public class RedisConversation implements Serializable {
     @Id
     private String conversationId;
-    private String userId;
+
+    private List<String> userIds;
     private String nodeId;
     private Instant connectedAt;
 }

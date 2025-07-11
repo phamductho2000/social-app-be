@@ -1,47 +1,31 @@
 package com.social.websocket.service.impl;
 
-import com.social.websocket.domain.RedisConversation;
-import com.social.websocket.repo.RedisConversationRepository;
 import com.social.websocket.service.RedisConversationService;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
 public class RedisConversationServiceImpl implements RedisConversationService {
 
-    private final RedisConversationRepository redisConversationRepository;
+  private final RedisTemplate<String, String> redisTemplate;
 
-    private final SimpMessagingTemplate messagingTemplate;
+  private static final String key = "WS:CONVERSATION:USERS:";
 
-    @Override
-    public void add(String conversationId, String userId) throws UnknownHostException {
-        String nodeId = InetAddress.getLocalHost().getHostName();
-        RedisConversation redisConversation = RedisConversation.builder()
-                .conversationId(conversationId)
-                .userId(userId)
-                .connectedAt(Instant.now())
-                .nodeId(nodeId)
-                .build();
-        redisConversationRepository.save(redisConversation);
-    }
+  @Override
+  public void add(String conversationId, String userId) {
+    redisTemplate.opsForSet().add(key + conversationId, userId);
+  }
 
-    @Override
-    public void remove(String conversationId) {
-        redisConversationRepository.deleteById(conversationId);
-    }
+  @Override
+  public void remove(String conversationId, String userId) {
+    redisTemplate.opsForSet().remove(key + conversationId, userId);
+  }
 
-//    @Override
-//    public void send(SendMessageDto request) {
-////        List<RedisSessionInfo> redisSessionInfos = redisSessionInfoRepository.findAllByUserIdIn(request.getUserIds());
-////        redisSessionInfos.forEach(redisSessionInfo -> {
-////            messagingTemplate.convertAndSendToUser(redisSessionInfo.getSessionId(), "/queue/messages", request);
-////        });
-//        messagingTemplate.convertAndSend(request.getTopic(), request.getData());
-//    }
+  @Override
+  public Set<String> getUserIds(String conversationId) {
+    return redisTemplate.opsForSet().members(key + conversationId);
+  }
 }
