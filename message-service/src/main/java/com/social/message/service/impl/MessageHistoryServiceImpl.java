@@ -12,6 +12,7 @@ import com.social.message.dto.request.MarkReadMessageReqDto;
 import com.social.message.dto.request.MessageReqDTO;
 import com.social.message.dto.request.ReactionHistoryReqDto;
 import com.social.message.dto.request.SearchMessageRequestDto;
+import com.social.message.dto.response.MarkReadMessageResDto;
 import com.social.message.dto.response.MessageResDTO;
 import com.social.message.exception.ChatServiceException;
 import com.social.message.repo.MessageHistoryRepository;
@@ -144,7 +145,7 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
-            kafkaTemplate.send("MARK_READ_MESSAGE_SUCCESS", objectMapper.writeValueAsString(MarkReadMessageReqDto.builder()
+            kafkaTemplate.send("MARKED_READ_MESSAGE", objectMapper.writeValueAsString(MarkReadMessageReqDto.builder()
                     .userId(logger.getUserId())
                     .conversationId(res.getFirst().getConversationId())
                     .size(res.size())
@@ -152,6 +153,18 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
         } catch (JsonProcessingException ex) {
             throw new RuntimeException(ex);
         }
+
+        res.forEach(msg -> {
+            try {
+                kafkaTemplate.send("SENT_MESSAGE", objectMapper.writeValueAsString(MarkReadMessageResDto.builder()
+                        .id(msg.getId())
+                        .conversationId(msg.getConversationId())
+                        .status(msg.getStatus())
+                        .build()));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
         return true;
     }
 }

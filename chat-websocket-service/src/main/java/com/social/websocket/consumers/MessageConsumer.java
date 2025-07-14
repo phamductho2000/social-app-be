@@ -1,6 +1,5 @@
 package com.social.websocket.consumers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social.websocket.service.ChatWebSocketService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +8,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
+import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_CHANGE_CONVERSATION;
 import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_MESSAGE;
 
 @Component
@@ -22,21 +22,13 @@ public class MessageConsumer {
     private final ChatWebSocketService chatWebSocketService;
 
     @KafkaListener(topics = "SENT_MESSAGE", groupId = "sent_message")
-    public void listenMessage(ConsumerRecord<String, Object> record)
-        throws JsonProcessingException {
+    public void listenMessage(ConsumerRecord<String, Object> record) {
         messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + record.key(), record.value());
-        chatWebSocketService.sendMessageToAllUser(record.key(), objectMapper.writeValueAsString(record.value()));
+//        chatWebSocketService.sendMessageToAllUser(record.key(), objectMapper.writeValueAsString(record.value()));
     }
 
-    @KafkaListener(topics = "UPDATE_CONVERSATION_SUCCESS", groupId = "chat-app-1")
-    public void listenConversation(String payload) {
-//        UserConversationResDTO res;
-//        try {
-//            objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-//            res = objectMapper.readValue(payload, UserConversationResDTO.class);
-//            chatWebSocketService.sendConversationChange(List.of(res));
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException(e);
-//        }
+    @KafkaListener(topics = "UPDATED_CONVERSATION", groupId = "updated_conversation")
+    public void listenConversation(ConsumerRecord<String, Object> record) {
+        messagingTemplate.convertAndSendToUser(record.key(), TOPIC_LISTEN_CHANGE_CONVERSATION, record.value());
     }
 }

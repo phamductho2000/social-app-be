@@ -1,6 +1,9 @@
 package com.social.conversation.constants;
 
 public enum MessageStatus {
+    SENDING,
     SENT,
-    SEEN
+    READ,
+    FAILED,
+    DELETED
 }
