@@ -7,12 +7,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="microservices-common" />
         <module name="auth-service" />
         <module name="conversation-service" />
         <module name="products-service (1)" />
         <module name="api-gateway" />
         <module name="user-service" />
-        <module name="storage-service" />
+        <module name="messageHistory-service" />
         <module name="api-documentation-service" />
         <module name="chat-websocket-service" />
         <module name="message-service" />
@@ -22,9 +23,10 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath>
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
+        <module name="storage-service" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -41,6 +43,8 @@
       <module name="conversation-service" options="-parameters" />
       <module name="discovery-service" options="-parameters" />
       <module name="message-service" options="-parameters" />
+      <module name="messageHistory-service" options="-parameters" />
+      <module name="microservices-common" options="-parameters" />
       <module name="storage-service" options="-parameters" />
       <module name="user-service" options="-parameters" />
     </option>

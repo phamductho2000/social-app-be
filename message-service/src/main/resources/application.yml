@@ -11,7 +11,7 @@ spring:
       #      password: root
       #      database: product-db
       #      port: 27017
-      uri: mongodb://localhost:27017/message?replicaSet=rs0
+      uri: mongodb://localhost:27017/message
     redis:
       host: localhost
       port: 6379

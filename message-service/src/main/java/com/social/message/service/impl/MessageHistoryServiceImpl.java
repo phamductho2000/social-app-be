@@ -7,12 +7,7 @@ import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.message.constant.MessageStatus;
 import com.social.message.domain.MessageHistory;
-import com.social.message.domain.ReactionHistory;
-import com.social.message.dto.request.MarkReadMessageReqDto;
-import com.social.message.dto.request.MessageReqDTO;
-import com.social.message.dto.request.ReactionHistoryReqDto;
-import com.social.message.dto.request.ReactionReqDto;
-import com.social.message.dto.request.SearchMessageRequestDto;
+import com.social.message.dto.request.*;
 import com.social.message.dto.response.MarkReadMessageResDto;
 import com.social.message.dto.response.MessageResDTO;
 import com.social.message.exception.ChatServiceException;
@@ -75,30 +70,30 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
         throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
     }
 
-  @Override
-  public MessageResDTO react(ReactionReqDto request) throws ChatServiceException {
-    log.info("react: {}", request);
-    if (Objects.nonNull(request) && StringUtils.isNotEmpty(request.messageId())) {
-      MessageHistory messageHistory = messageHistoryRepository.findById(request.messageId())
-          .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
+    @Override
+    public MessageResDTO react(ReactionReqDto request) throws ChatServiceException {
+        log.info("react: {}", request);
+        if (Objects.nonNull(request) && StringUtils.isNotEmpty(request.messageId())) {
+            MessageHistory messageHistory = messageHistoryRepository.findById(request.messageId())
+                    .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
 
-      Map<String, Long> reaction = messageHistory.getSummaryReaction();
-      long count;
-      if (reaction.containsKey(request.emoji())) {
-        count = reaction.get(request.emoji()) + 1;
-      } else {
-        count = 1;
-      }
-      reaction.put(request.emoji(), count);
+            Map<String, Long> reaction = Optional.ofNullable(messageHistory.getSummaryReaction()).orElse(new HashMap<>());
+            long count;
+            if (reaction.containsKey(request.emoji())) {
+                count = reaction.get(request.emoji()) + 1;
+            } else {
+                count = 1;
+            }
+            reaction.put(request.emoji(), count);
+            messageHistory.setSummaryReaction(reaction);
 
-      ReactionHistoryReqDto dto =modelMapper.map(messageHistory, ReactionHistoryReqDto.class);
+            ReactionHistoryReqDto dto = modelMapper.map(request, ReactionHistoryReqDto.class);
+            reactionHistoryService.save(dto);
 
-      reactionHistoryService.save(dto);
-
-      return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
+            return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
+        }
+        throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
     }
-    throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
-  }
 
     @Override
     public CustomPageScroll<MessageResDTO> searchMessage(SearchMessageRequestDto request) throws ChatServiceException {
@@ -123,10 +118,14 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
 
         Window<MessageHistory> result = mongoTemplate.scroll(query, MessageHistory.class);
 
+        Long total = mongoTemplate.count(query, MessageHistory.class);
+
         if (result.hasNext()) {
             scrollPosition = result.positionAt(result.size() - 1);
             extendData.put("searchAfter", encodeSearchAfter(scrollPosition));
         }
+
+        extendData.put("total", total);
 
         return CustomPageScroll.buildPage(result.getContent().stream().map(e -> modelMapper.map(e, MessageResDTO.class)).toList(),
                 result.size(),

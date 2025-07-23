@@ -17,6 +17,6 @@ keycloak:
   password: admin
   client-id: admin-cli
   target-client-id: social-app
-  client-secret: mbLEkTHX2ZQluww2rqORVzwJZeujQnxy
+  client-secret: TYHG1gwTQscDjrJH9AaNEwteq7xGUwDu
   target-realm: social-app
   api-url: http://localhost:8080/realms/social-app
