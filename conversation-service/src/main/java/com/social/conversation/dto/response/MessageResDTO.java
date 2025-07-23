@@ -1,24 +1,29 @@
 package com.social.conversation.dto.response;
 
 import com.social.conversation.constants.MessageStatus;
+import com.social.conversation.constants.MessageTypeStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class MessageResDTO {
     private String id;
+    private String tempId;
     private String conversationId;
     private String senderId;
+    private String userName;
     private String content;
-    private String contentType;
-    private List<AttachmentDTO> attachments;
+    private MessageTypeStatus type;
     private MessageStatus status;
-    private Instant createdAt;
-    private Instant updatedAt;
+    private Instant sentAt;
+    //    private List<Attachment> attachments;
+    private Map<String, Long> summaryReaction;
+//    private List<Mention> mentions;
+//    private Reply replyTo;
 }

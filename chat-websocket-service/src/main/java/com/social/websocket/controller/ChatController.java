@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.Objects;
 
 @RestController
@@ -34,12 +35,14 @@ public class ChatController {
     }
 
     @MessageMapping("/connect-conversation/{conversationId}")
-    public void connectConversation(@DestinationVariable String conversationId, String userId) {
+    public void connectConversation(@DestinationVariable String conversationId, Principal principal) {
+        String userId = principal.getName();
         redisConversationService.add(conversationId, userId);
     }
 
     @MessageMapping("/disconnect-conversation/{conversationId}")
-    public void disconnectConversation(@DestinationVariable String conversationId, String userId) {
+    public void disconnectConversation(@DestinationVariable String conversationId, Principal principal) {
+        String userId = principal.getName();
         redisConversationService.remove(conversationId, userId);
     }
 

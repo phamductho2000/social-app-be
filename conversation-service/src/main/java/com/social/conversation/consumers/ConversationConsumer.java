@@ -3,13 +3,13 @@ package com.social.conversation.consumers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.social.common.exception.AppException;
-import com.social.conversation.constants.MessageStatus;
 import com.social.conversation.dto.request.MarkReadMessageReqDto;
 import com.social.conversation.dto.response.MessageResDTO;
 import com.social.conversation.dto.response.UserConversationResDTO;
 import com.social.conversation.exception.ChatServiceException;
 import com.social.conversation.service.UserConversationService;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -28,22 +28,35 @@ public class ConversationConsumer {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    @KafkaListener(topics = "SAVE_NEW_MESSAGE_SUCCESS", groupId = "chat-app-2")
+    @KafkaListener(topics = "SENT_MESSAGE", groupId = "conversation_sent_message")
     public void listenMessage(String payload) {
         MessageResDTO req;
         try {
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
             req = objectMapper.readValue(payload, MessageResDTO.class);
-            if (req.getStatus() == MessageStatus.SENT) {
-                List<UserConversationResDTO> result = userConversationService.handleNewMessage(req);
-            }
-//            kafkaTemplate.send("UPDATE_CONVERSATION_SUCCESS", objectMapper.writeValueAsString(result));
+            List<UserConversationResDTO> result = userConversationService.handleNewMessage(req);
+//            kafkaTemplate.send("UPDATED_CONVERSATION", objectMapper.writeValueAsString(result));
+            result.forEach(r -> {
+                ProducerRecord<String, String> record = null;
+                try {
+                    record = new ProducerRecord<>(
+                            "UPDATED_CONVERSATION",
+                            null,
+                            r.getUserId(),
+                            objectMapper.writeValueAsString(r)
+                    );
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                kafkaTemplate.send(record);
+            });
+
         } catch (JsonProcessingException | ChatServiceException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @KafkaListener(topics = "MARK_READ_MESSAGE_SUCCESS", groupId = "chat-app-8")
+    @KafkaListener(topics = "MARKED_READ_MESSAGE", groupId = "marked_read_message")
     public void listenMark(String payload) {
         MarkReadMessageReqDto req;
         try {
