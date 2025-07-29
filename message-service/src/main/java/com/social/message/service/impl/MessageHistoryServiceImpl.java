@@ -87,7 +87,11 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
             reaction.put(request.emoji(), count);
             messageHistory.setSummaryReaction(reaction);
 
-            ReactionHistoryReqDto dto = modelMapper.map(request, ReactionHistoryReqDto.class);
+            ReactionHistoryReqDto dto = ReactionHistoryReqDto.builder()
+                    .messageId(request.messageId())
+                    .userId(request.userId())
+                    .emoji(request.emoji())
+                    .build();
             reactionHistoryService.save(dto);
 
             return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
