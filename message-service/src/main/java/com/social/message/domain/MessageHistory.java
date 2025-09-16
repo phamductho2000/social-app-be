@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
-@Document(value = "message_history")
+@Document(value = "edit_history")
 @Data
 @Builder
 @AllArgsConstructor
@@ -33,4 +33,6 @@ public class MessageHistory extends BaseDomain {
     private Map<String, Long> summaryReaction;
     private List<Mention> mentions;
     private Reply replyTo;
+    private boolean isEdited;
+    private boolean isPinned;
 }

@@ -48,7 +48,7 @@ public class MessageConsumer {
     }
 
     @KafkaListener(topics = "REACT_MESSAGE", groupId = "message_service_react_message")
-    public void listenUpdate(String payload) {
+    public void listenReact(String payload) {
         ReactionReqDto req;
         try {
             objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -65,6 +65,28 @@ public class MessageConsumer {
 
         } catch (JsonProcessingException | ChatServiceException e) {
             kafkaTemplate.send("REACT_MESSAGE_FAILED", payload);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @KafkaListener(topics = "EDIT_MESSAGE", groupId = "message_service_edit_message")
+    public void listenEdit(String payload) {
+        MessageReqDTO req;
+        try {
+            objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+            req = objectMapper.readValue(payload, MessageReqDTO.class);
+            MessageResDTO res = messageHistoryService.edit(req);
+
+            ProducerRecord<String, String> record = new ProducerRecord<>(
+                "SENT_MESSAGE",
+                null,
+                res.getConversationId(),
+                objectMapper.writeValueAsString(res)
+            );
+            kafkaTemplate.send(record);
+
+        } catch (JsonProcessingException | ChatServiceException e) {
+            kafkaTemplate.send("EDIT_MESSAGE_FAILED", payload);
             throw new RuntimeException(e);
         }
     }

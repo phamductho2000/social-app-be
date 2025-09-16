@@ -12,6 +12,7 @@ import com.social.message.dto.response.MarkReadMessageResDto;
 import com.social.message.dto.response.MessageResDTO;
 import com.social.message.exception.ChatServiceException;
 import com.social.message.repo.MessageHistoryRepository;
+import com.social.message.service.EditHistoryService;
 import com.social.message.service.MessageHistoryService;
 import com.social.message.service.ReactionHistoryService;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,8 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
 
     private final ReactionHistoryService reactionHistoryService;
 
+    private final EditHistoryService editHistoryService;
+
     @Override
     public MessageResDTO save(MessageReqDTO request) throws ChatServiceException {
         log.info("save: {}", request);
@@ -93,6 +96,24 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
                     .emoji(request.emoji())
                     .build();
             reactionHistoryService.save(dto);
+
+            return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
+        }
+        throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
+    }
+
+    @Override
+    public MessageResDTO edit(MessageReqDTO request) throws ChatServiceException {
+        log.info("edit: {}", request);
+        if (Objects.nonNull(request) && StringUtils.isNotEmpty(request.getId())) {
+            MessageHistory exist = messageHistoryRepository.findById(request.getId())
+                .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
+
+            MessageHistory messageHistory = modelMapper.map(request, MessageHistory.class);
+            messageHistory.setEdited(true);
+            messageHistory.setUpdatedAt(Instant.now());
+
+            editHistoryService.save(exist, exist.getId());
 
             return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
         }
