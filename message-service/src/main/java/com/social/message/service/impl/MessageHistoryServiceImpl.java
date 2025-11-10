@@ -7,6 +7,7 @@ import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.message.constant.MessageStatus;
 import com.social.message.domain.MessageHistory;
+import com.social.message.dto.SendMessageDto;
 import com.social.message.dto.request.*;
 import com.social.message.dto.response.MarkReadMessageResDto;
 import com.social.message.dto.response.MessageResDTO;
@@ -58,17 +59,17 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
     private final EditHistoryService editHistoryService;
 
     @Override
-    public MessageResDTO save(MessageReqDTO request) throws ChatServiceException {
-        log.info("save: {}", request);
+    public MessageResDTO create(SendMessageDto request) throws ChatServiceException {
+        log.info("create request: {}", request);
         if (Objects.nonNull(request)) {
-            MessageHistory chatMessageHistory = modelMapper.map(request, MessageHistory.class);
-            chatMessageHistory.setConversationId(request.getConversationId());
-            chatMessageHistory.setStatus(MessageStatus.SENT);
-            chatMessageHistory.setCreatedAt(Instant.now());
-            chatMessageHistory.setCreatedBy(request.getUserName());
-            chatMessageHistory.setUpdatedAt(Instant.now());
-            chatMessageHistory.setUpdatedBy(request.getUserName());
-            return modelMapper.map(messageHistoryRepository.save(chatMessageHistory), MessageResDTO.class);
+            MessageHistory messageHistory = modelMapper.map(request, MessageHistory.class);
+            messageHistory.setConversationId(request.getConversationId());
+            messageHistory.setStatus(MessageStatus.SENT);
+            messageHistory.setCreatedAt(Instant.now());
+            messageHistory.setSentAt(Instant.now());
+//            messageHistory.setCreatedBy(request.getUserName());
+//            messageHistory.setUpdatedBy(request.getUserName());
+            return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
         }
         throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
     }
@@ -109,13 +110,29 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
             MessageHistory exist = messageHistoryRepository.findById(request.getId())
                 .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
 
-            MessageHistory messageHistory = modelMapper.map(request, MessageHistory.class);
-            messageHistory.setEdited(true);
-            messageHistory.setUpdatedAt(Instant.now());
+            exist.setContent(request.getContent());
+            exist.setAttachments(request.getAttachments());
+            exist.setEdited(true);
+            exist.setUpdatedAt(Instant.now());
 
             editHistoryService.save(exist, exist.getId());
 
-            return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
+            return modelMapper.map(messageHistoryRepository.save(exist), MessageResDTO.class);
+        }
+        throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
+    }
+
+    @Override
+    public MessageResDTO pin(MessageReqDTO request) throws ChatServiceException {
+        log.info("pin: {}", request);
+        if (Objects.nonNull(request) && StringUtils.isNotEmpty(request.getId())) {
+            MessageHistory exist = messageHistoryRepository.findById(request.getId())
+                    .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
+
+            exist.setPinned(true);
+            exist.setUpdatedAt(Instant.now());
+
+            return modelMapper.map(messageHistoryRepository.save(exist), MessageResDTO.class);
         }
         throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
     }

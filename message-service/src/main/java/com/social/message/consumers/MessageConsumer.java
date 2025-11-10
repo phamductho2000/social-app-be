@@ -90,4 +90,26 @@ public class MessageConsumer {
             throw new RuntimeException(e);
         }
     }
+
+    @KafkaListener(topics = "PIN_MESSAGE", groupId = "message_service_pin_message")
+    public void listenPin(String payload) {
+        MessageReqDTO req;
+        try {
+            objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+            req = objectMapper.readValue(payload, MessageReqDTO.class);
+            MessageResDTO res = messageHistoryService.pin(req);
+
+            ProducerRecord<String, String> record = new ProducerRecord<>(
+                    "SENT_MESSAGE",
+                    null,
+                    res.getConversationId(),
+                    objectMapper.writeValueAsString(res)
+            );
+            kafkaTemplate.send(record);
+
+        } catch (JsonProcessingException | ChatServiceException e) {
+            kafkaTemplate.send("EDIT_MESSAGE_FAILED", payload);
+            throw new RuntimeException(e);
+        }
+    }
 }

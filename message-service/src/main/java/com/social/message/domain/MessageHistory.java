@@ -3,7 +3,7 @@ package com.social.message.domain;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.social.common.domain.BaseDomain;
 import com.social.message.constant.MessageStatus;
-import com.social.message.constant.MessageTypeStatus;
+import com.social.message.constant.MessageType;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
-@Document(value = "edit_history")
+@Document(value = "message_history")
 @Data
 @Builder
 @AllArgsConstructor
@@ -26,7 +26,7 @@ public class MessageHistory extends BaseDomain {
     private String conversationId;
     private String senderId;
     private String content;
-    private MessageTypeStatus type;
+    private MessageType type;
     private MessageStatus status;
     private Instant sentAt;
     private List<Attachment> attachments;

@@ -47,12 +47,22 @@ public class ChatController {
     }
 
     @MessageMapping("/chat/message/send/{conversationId}")
-    public void sendMessageToConversation(@DestinationVariable String conversationId, String message) {
-        chatWebSocketService.sendMessageToConversation(conversationId, message);
+    public void sendMessageToConversation(@DestinationVariable String conversationId, String payload) {
+        chatWebSocketService.sendMessageToConversation(conversationId, payload);
     }
 
     @MessageMapping("/chat/message/react/{conversationId}")
-    public void reactMessageToConversation(@DestinationVariable String conversationId, String message) {
-        chatWebSocketService.reactMessageToConversation(conversationId, message);
+    public void reactMessageToConversation(@DestinationVariable String conversationId, String payload) {
+        chatWebSocketService.reactMessageToConversation(conversationId, payload);
+    }
+
+    @MessageMapping("/chat/message/edit/{conversationId}")
+    public void editMessageToConversation(@DestinationVariable String conversationId, String payload) {
+        chatWebSocketService.editMessageToConversation(conversationId, payload);
+    }
+
+    @MessageMapping("/chat/message/pin/{conversationId}")
+    public void pinMessageToConversation(@DestinationVariable String conversationId, String payload) {
+        chatWebSocketService.pinMessageToConversation(conversationId, payload);
     }
 }

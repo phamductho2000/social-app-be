@@ -1,10 +1,9 @@
 package com.social.message.dto.response;
 
 import com.social.message.constant.MessageStatus;
-import com.social.message.constant.MessageTypeStatus;
+import com.social.message.constant.MessageType;
 import com.social.message.domain.Attachment;
 import com.social.message.domain.Mention;
-import com.social.message.domain.ReactionHistory;
 import com.social.message.domain.Reply;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +23,7 @@ public class MessageResDTO {
     private String senderId;
     private String userName;
     private String content;
-    private MessageTypeStatus type;
+    private MessageType type;
     private MessageStatus status;
     private Instant sentAt;
     private List<Attachment> attachments;

@@ -105,7 +105,6 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    @Transactional
     public ConversationResDTO createConversation(ConversationReqDTO request) throws AppException {
         if (Objects.isNull(request)) {
             throw new AppException("ConversationsService: Empty payload", "EMPTY_PAYLOAD");
@@ -141,5 +140,11 @@ public class ConversationServiceImpl implements ConversationService {
         userConversationService.saveAll(participants, conversation, responseMsg.getData());
 
         return mapper.map(conversation, ConversationResDTO.class);
+    }
+
+    public void updatePinMessage(String conversationId, MessageReqDTO request) throws AppException {
+        if (Objects.isNull(request)) {
+
+        }
     }
 }

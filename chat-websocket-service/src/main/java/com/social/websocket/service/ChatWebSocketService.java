@@ -4,7 +4,7 @@ public interface ChatWebSocketService {
 
   void typingMessageToConversation(String conversationId, String payload);
 
-  void sendMessageToConversation(String conversationId, String message) ;
+  void sendMessageToConversation(String conversationId, String payload) ;
 
     void reactMessageToConversation(String conversationId, String payload);
 
