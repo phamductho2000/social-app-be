@@ -13,8 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Reply {
-    private String messageId;
-    private String senderId;
+    private String replyMessageId;
+    private String replyFromUserId;
     private String content;
     private MessageType type;
     private List<Attachment> attachments;

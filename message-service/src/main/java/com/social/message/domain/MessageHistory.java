@@ -22,8 +22,9 @@ import java.util.Map;
 public class MessageHistory extends BaseDomain {
     @Id
     private String id;
-    private String tempId;
-    private String conversationId;
+    private Integer msgId;
+    private String clientMsgId;
+    private String chatId;
     private String senderId;
     private String content;
     private MessageType type;

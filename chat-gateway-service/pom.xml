@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.socialapp</groupId>
-    <artifactId>chat-websocket-service</artifactId>
+    <artifactId>chat-gateway-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>chat-websocket-service</name>
-    <description>chat-websocket-service</description>
+    <name>chat-gateway-service</name>
+    <description>chat-gateway-service</description>
     <properties>
         <java.version>21</java.version>
         <spring-cloud.version>2024.0.1</spring-cloud.version>

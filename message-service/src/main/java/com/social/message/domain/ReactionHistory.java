@@ -21,8 +21,8 @@ import java.time.Instant;
 public class ReactionHistory {
     @Id
     private String id;
-    private String conversationId;
-    private String messageId;
+    private String chatId;
+    private Integer msgId;
     private String userId;
     private String emoji;
     private String unified;

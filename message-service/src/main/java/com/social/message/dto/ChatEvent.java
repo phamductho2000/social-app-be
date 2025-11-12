@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatEvent {
+public class ChatEvent<T> {
     private MessageEvent event;
     private String conversationId;
-    private Object payload;
+    private T payload;
 }
