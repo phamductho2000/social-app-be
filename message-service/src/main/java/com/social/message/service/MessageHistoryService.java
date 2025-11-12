@@ -1,6 +1,7 @@
 package com.social.message.service;
 
 import com.social.common.page.CustomPageScroll;
+import com.social.message.dto.EditMessageDto;
 import com.social.message.dto.SendMessageDto;
 import com.social.message.dto.request.MessageReqDTO;
 import com.social.message.dto.request.ReactionReqDto;
@@ -14,7 +15,7 @@ public interface MessageHistoryService {
 
     MessageResDTO react(ReactionReqDto request) throws ChatServiceException;
 
-    MessageResDTO edit(MessageReqDTO request) throws ChatServiceException;
+    MessageResDTO edit(EditMessageDto request) throws ChatServiceException;
 
     MessageResDTO pin(MessageReqDTO request) throws ChatServiceException;
 

@@ -15,8 +15,8 @@
         <module name="user-service" />
         <module name="messageHistory-service" />
         <module name="api-documentation-service" />
-        <module name="chat-websocket-service" />
         <module name="message-service" />
+        <module name="chat-websocket-service" />
         <module name="discovery-service" />
       </profile>
       <profile name="Annotation profile for storage-service" enabled="true">
@@ -30,6 +30,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="chat-gateway-service" target="21" />
       <module name="chat-service" target="17" />
     </bytecodeTargetLevel>
   </component>
@@ -38,6 +39,7 @@
       <module name="api-documentation-service" options="-parameters" />
       <module name="api-gateway" options="-parameters" />
       <module name="auth-service" options="-parameters" />
+      <module name="chat-gateway-service" options="-parameters" />
       <module name="chat-service" options="-parameters" />
       <module name="chat-websocket-service" options="-parameters" />
       <module name="conversation-service" options="-parameters" />

@@ -24,6 +24,7 @@
         <option value="$PROJECT_DIR$/message-service/pom.xml" />
         <option value="$PROJECT_DIR$/storage-service/pom.xml" />
         <option value="$PROJECT_DIR$/microservices-common/pom.xml" />
+        <option value="$PROJECT_DIR$/chat-gateway-service/pom.xml" />
       </list>
     </option>
   </component>
