@@ -17,7 +17,7 @@ import java.util.List;
 @Builder
 public class SendMessageDto {
     private String clientMsgId;
-    private String chatId;
+    private String conversationId;
     private String senderId;
     private String content;
     private MessageType type;

@@ -24,7 +24,7 @@ public class MessageHistory extends BaseDomain {
     private String id;
     private Integer msgId;
     private String clientMsgId;
-    private String chatId;
+    private String conversationId;
     private String senderId;
     private String content;
     private MessageType type;

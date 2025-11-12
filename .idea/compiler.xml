@@ -9,14 +9,13 @@
         <outputRelativeToContentRoot value="true" />
         <module name="microservices-common" />
         <module name="auth-service" />
-        <module name="conversation-service" />
         <module name="products-service (1)" />
         <module name="api-gateway" />
+        <module name="chat-service" />
         <module name="user-service" />
-        <module name="messageHistory-service" />
+        <module name="chat-gateway-service" />
         <module name="api-documentation-service" />
         <module name="message-service" />
-        <module name="chat-websocket-service" />
         <module name="discovery-service" />
       </profile>
       <profile name="Annotation profile for storage-service" enabled="true">
@@ -30,8 +29,8 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="chat-gateway-service" target="21" />
-      <module name="chat-service" target="17" />
+      <module name="chat-websocket-service" target="21" />
+      <module name="conversation-service" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -45,7 +44,6 @@
       <module name="conversation-service" options="-parameters" />
       <module name="discovery-service" options="-parameters" />
       <module name="message-service" options="-parameters" />
-      <module name="messageHistory-service" options="-parameters" />
       <module name="microservices-common" options="-parameters" />
       <module name="storage-service" options="-parameters" />
       <module name="user-service" options="-parameters" />

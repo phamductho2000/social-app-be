@@ -24,10 +24,10 @@ public class MessageController {
 
     private final MessageHistoryService messagesService;
 
-    @PostMapping("/save")
-    public ApiResponse<MessageResDTO> saveMessage(@RequestBody MessageReqDTO request) throws ChatServiceException {
-        return ApiResponse.success(messagesService.save(request));
-    }
+//    @PostMapping("/save")
+//    public ApiResponse<MessageResDTO> saveMessage(@RequestBody MessageReqDTO request) throws ChatServiceException {
+//        return ApiResponse.success(messagesService.save(request));
+//    }
 
     @PostMapping("/search-message")
     public ApiResponse<CustomPageScroll<MessageResDTO>> searchMessage(@RequestBody SearchMessageRequestDto request) throws ChatServiceException {
