@@ -2,6 +2,8 @@ package com.social.message.service;
 
 import com.social.common.page.CustomPageScroll;
 import com.social.message.dto.EditMessageDto;
+import com.social.message.dto.PinMessageDto;
+import com.social.message.dto.ReplyMessageDto;
 import com.social.message.dto.SendMessageDto;
 import com.social.message.dto.request.MessageReqDTO;
 import com.social.message.dto.request.ReactionReqDto;
@@ -17,7 +19,9 @@ public interface MessageHistoryService {
 
     MessageResDTO edit(EditMessageDto request) throws ChatServiceException;
 
-    MessageResDTO pin(MessageReqDTO request) throws ChatServiceException;
+    MessageResDTO reply(ReplyMessageDto request) throws ChatServiceException;
+
+    MessageResDTO pin(PinMessageDto request) throws ChatServiceException;
 
     CustomPageScroll<MessageResDTO> searchMessage(SearchMessageRequestDto request) throws ChatServiceException;
 

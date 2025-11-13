@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class EditMessageDto {
     private Integer msgId;
-    private String chatId;
+    private String conversationId;
     private String content;
     private MessageType type;
     private List<Attachment> attachments;

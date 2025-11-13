@@ -33,7 +33,7 @@ public class MessageHistory extends BaseDomain {
     private List<Attachment> attachments;
     private Map<String, Long> summaryReaction;
     private List<Mention> mentions;
-    private Reply replyTo;
+    private Reply reply;
     private boolean isEdited;
     private boolean isPinned;
 }

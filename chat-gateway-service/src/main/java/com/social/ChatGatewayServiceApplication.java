@@ -2,13 +2,12 @@ package com.social;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-public class ChatWebsocketServiceApplication {
+public class ChatGatewayServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ChatWebsocketServiceApplication.class, args);
+        SpringApplication.run(ChatGatewayServiceApplication.class, args);
     }
 
 }

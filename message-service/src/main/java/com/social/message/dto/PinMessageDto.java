@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PinMessageDto {
     private Integer msgId;
-    private String chatId;
+    private String conversationId;
 }

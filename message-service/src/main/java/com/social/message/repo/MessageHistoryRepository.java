@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MessageHistoryRepository extends MongoRepository<MessageHistory, String> {
 
-  Optional<MessageHistory> findFirstByMsgIdAndChatId(Integer msgId, String chatId);
+  Optional<MessageHistory> findFirstByMsgIdAndConversationId(Integer msgId, String conversationId);
 }

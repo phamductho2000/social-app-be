@@ -1,25 +1,34 @@
 package com.social.message.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.social.common.util.AppUtils.decodeSearchAfter;
+import static com.social.common.util.AppUtils.encodeSearchAfter;
+
 import com.social.common.log.Logger;
 import com.social.common.page.CustomPageScroll;
 import com.social.common.util.QueryBuilder;
 import com.social.message.constant.MessageStatus;
 import com.social.message.domain.MessageHistory;
 import com.social.message.dto.EditMessageDto;
+import com.social.message.dto.PinMessageDto;
+import com.social.message.dto.ReplyMessageDto;
 import com.social.message.dto.SendMessageDto;
-import com.social.message.dto.request.*;
-import com.social.message.dto.response.MarkReadMessageResDto;
+import com.social.message.dto.request.ReactionHistoryReqDto;
+import com.social.message.dto.request.ReactionReqDto;
+import com.social.message.dto.request.SearchMessageRequestDto;
 import com.social.message.dto.response.MessageResDTO;
 import com.social.message.exception.ChatServiceException;
 import com.social.message.repo.MessageHistoryRepository;
 import com.social.message.service.EditHistoryService;
 import com.social.message.service.MessageHistoryService;
 import com.social.message.service.ReactionHistoryService;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
@@ -30,13 +39,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-
-import java.time.Instant;
-import java.util.*;
-
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static com.social.common.util.AppUtils.decodeSearchAfter;
-import static com.social.common.util.AppUtils.encodeSearchAfter;
+import org.springframework.util.StringUtils;
 
 
 @Slf4j
@@ -63,14 +66,14 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
   public MessageResDTO create(SendMessageDto request) throws ChatServiceException {
     log.info("create request: {}", request);
     if (Objects.nonNull(request)) {
-      MessageHistory messageHistory = modelMapper.map(request, MessageHistory.class);
-      messageHistory.setConversationId(request.getConversationId());
-      messageHistory.setStatus(MessageStatus.SENT);
-      messageHistory.setCreatedAt(Instant.now());
-      messageHistory.setSentAt(Instant.now());
-//            messageHistory.setCreatedBy(request.getUserName());
-//            messageHistory.setUpdatedBy(request.getUserName());
-      return modelMapper.map(messageHistoryRepository.save(messageHistory), MessageResDTO.class);
+      MessageHistory history = modelMapper.map(request, MessageHistory.class);
+      history.setConversationId(request.getConversationId());
+      history.setStatus(MessageStatus.SENT);
+      history.setCreatedAt(Instant.now());
+      history.setSentAt(Instant.now());
+//            history.setCreatedBy(request.getUserName());
+//            history.setUpdatedBy(request.getUserName());
+      return modelMapper.map(messageHistoryRepository.save(history), MessageResDTO.class);
     }
     throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
   }
@@ -78,7 +81,7 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
   @Override
   public MessageResDTO react(ReactionReqDto request) throws ChatServiceException {
     log.info("react: {}", request);
-    if (Objects.nonNull(request) && StringUtils.isNotEmpty(request.messageId())) {
+    if (Objects.nonNull(request) && !StringUtils.hasText(request.messageId())) {
       MessageHistory messageHistory = messageHistoryRepository.findById(request.messageId())
           .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
 
@@ -110,12 +113,13 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
     log.info("edit request: {}", request);
     if (Objects.isNull(request) ||
         Objects.isNull(request.getMsgId()) ||
-        Objects.isNull(request.getChatId())) {
+        !StringUtils.hasText(request.getConversationId())) {
       throw new ChatServiceException("MessageService: invalid payload", "INVALID_PAYLOAD");
     }
 
-    MessageHistory exist = messageHistoryRepository.findFirstByMsgIdAndChatId(request.getMsgId(),
-            request.getChatId())
+    MessageHistory exist = messageHistoryRepository.findFirstByMsgIdAndConversationId(
+            request.getMsgId(),
+            request.getConversationId())
         .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
 
     exist.setType(request.getType());
@@ -131,18 +135,46 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
   }
 
   @Override
-  public MessageResDTO pin(MessageReqDTO request) throws ChatServiceException {
-    log.info("pin: {}", request);
-    if (Objects.nonNull(request) && StringUtils.isNotEmpty(request.getId())) {
-      MessageHistory exist = messageHistoryRepository.findById(request.getId())
-          .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
-
-      exist.setPinned(true);
-      exist.setUpdatedAt(Instant.now());
-
-      return modelMapper.map(messageHistoryRepository.save(exist), MessageResDTO.class);
+  public MessageResDTO reply(ReplyMessageDto request) throws ChatServiceException {
+    log.info("reply request: {}", request);
+    if (Objects.isNull(request) ||
+        !StringUtils.hasText(request.getClientMsgId()) ||
+        !StringUtils.hasText(request.getConversationId())) {
+      throw new ChatServiceException("MessageService: invalid payload", "INVALID_PAYLOAD");
     }
-    throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
+
+    MessageHistory history = modelMapper.map(request, MessageHistory.class);
+    history.setConversationId(request.getConversationId());
+    history.setStatus(MessageStatus.SENT);
+    history.setCreatedAt(Instant.now());
+    history.setSentAt(Instant.now());
+
+    return modelMapper.map(messageHistoryRepository.save(history), MessageResDTO.class);
+  }
+
+  @Override
+  public MessageResDTO pin(PinMessageDto request) throws ChatServiceException {
+    log.info("pin request: {}", request);
+    if (Objects.isNull(request) || Objects.isNull(request.getMsgId())
+        || !StringUtils.hasText(request.getConversationId())
+    ) {
+      throw new ChatServiceException("MessageService: invalid payload", "INVALID_PAYLOAD");
+    }
+    MessageHistory exist = messageHistoryRepository.findFirstByMsgIdAndConversationId(
+            request.getMsgId(),
+            request.getConversationId())
+        .orElseThrow(() -> new ChatServiceException("MessageService: not found", "NOT_FOUND"));
+
+    exist.setPinned(true);
+    exist.setUpdatedAt(Instant.now());
+
+    messageHistoryRepository.save(exist);
+
+    return MessageResDTO.builder()
+        .msgId(request.getMsgId())
+        .conversationId(request.getConversationId())
+        .isPinned(true)
+        .build();
   }
 
   @Override
@@ -156,7 +188,7 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
     ScrollPosition scrollPosition = ScrollPosition.keyset();
     Map<String, Object> extendData = new HashMap<>();
 
-    if (StringUtils.isNotEmpty(request.getSearchAfter())) {
+    if (StringUtils.hasText(request.getSearchAfter())) {
       scrollPosition = decodeSearchAfter(request.getSearchAfter());
     }
 
@@ -194,31 +226,31 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
                 .stream().peek(p -> p.setStatus(MessageStatus.READ)).toList())
         .stream().map(e -> modelMapper.map(e, MessageResDTO.class)).toList();
 
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-    try {
-      kafkaTemplate.send("MARKED_READ_MESSAGE",
-          objectMapper.writeValueAsString(MarkReadMessageReqDto.builder()
-              .userId(logger.getUserId())
-              .conversationId(res.getFirst().getConversationId())
-              .size(res.size())
-              .build()));
-    } catch (JsonProcessingException ex) {
-      throw new RuntimeException(ex);
-    }
-
-    res.forEach(msg -> {
-      try {
-        kafkaTemplate.send("SENT_MESSAGE",
-            objectMapper.writeValueAsString(MarkReadMessageResDto.builder()
-                .id(msg.getId())
-                .conversationId(msg.getConversationId())
-                .status(msg.getStatus())
-                .build()));
-      } catch (JsonProcessingException e) {
-        throw new RuntimeException(e);
-      }
-    });
+//    ObjectMapper objectMapper = new ObjectMapper();
+//    objectMapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+//    try {
+//      kafkaTemplate.send("MARKED_READ_MESSAGE",
+//          objectMapper.writeValueAsString(MarkReadMessageReqDto.builder()
+//              .userId(logger.getUserId())
+//              .conversationId(res.getFirst().getConversationId())
+//              .size(res.size())
+//              .build()));
+//    } catch (JsonProcessingException ex) {
+//      throw new RuntimeException(ex);
+//    }
+//
+//    res.forEach(msg -> {
+//      try {
+//        kafkaTemplate.send("SENT_MESSAGE",
+//            objectMapper.writeValueAsString(MarkReadMessageResDto.builder()
+//                .id(msg.getId())
+//                .conversationId(msg.getConversationId())
+//                .status(msg.getStatus())
+//                .build()));
+//      } catch (JsonProcessingException e) {
+//        throw new RuntimeException(e);
+//      }
+//    });
     return true;
   }
 }

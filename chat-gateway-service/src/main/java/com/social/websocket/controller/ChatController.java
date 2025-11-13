@@ -1,6 +1,7 @@
 package com.social.websocket.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.social.websocket.dto.request.ChatEvent;
 import com.social.websocket.service.ChatWebSocketService;
 import com.social.websocket.service.RedisConversationService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,6 @@ import java.util.Objects;
 @RestController
 @RequiredArgsConstructor
 public class ChatController {
-
-    private final SimpMessagingTemplate messagingTemplate;
 
     private final ChatWebSocketService chatWebSocketService;
 
@@ -46,23 +45,8 @@ public class ChatController {
         redisConversationService.remove(conversationId, userId);
     }
 
-    @MessageMapping("/chat/message/send/{conversationId}")
-    public void sendMessageToConversation(@DestinationVariable String conversationId, String payload) {
-        chatWebSocketService.sendMessageToConversation(conversationId, payload);
-    }
-
-    @MessageMapping("/chat/message/react/{conversationId}")
-    public void reactMessageToConversation(@DestinationVariable String conversationId, String payload) {
-        chatWebSocketService.reactMessageToConversation(conversationId, payload);
-    }
-
-    @MessageMapping("/chat/message/edit/{conversationId}")
-    public void editMessageToConversation(@DestinationVariable String conversationId, String payload) {
-        chatWebSocketService.editMessageToConversation(conversationId, payload);
-    }
-
-    @MessageMapping("/chat/message/pin/{conversationId}")
-    public void pinMessageToConversation(@DestinationVariable String conversationId, String payload) {
-        chatWebSocketService.pinMessageToConversation(conversationId, payload);
+    @MessageMapping("/chat/message/send")
+    public void sendMessageToConversation(ChatEvent<?> event) {
+        chatWebSocketService.sendMessage(event);
     }
 }
