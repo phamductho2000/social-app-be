@@ -1,4 +1,4 @@
-package com.social.message.domain;
+package com.social.message.domain.embedded;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

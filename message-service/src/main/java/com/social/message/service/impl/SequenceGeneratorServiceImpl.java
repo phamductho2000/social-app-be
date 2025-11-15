@@ -19,13 +19,13 @@ public class SequenceGeneratorServiceImpl implements SequenceGeneratorService {
   private final MongoOperations mongoOperations;
 
   @Override
-  public synchronized int generateMsgId(String chatId) {
-    SequenceGenerator counter = mongoOperations.findAndModify(query(where("chatId").is(chatId)),
+  public synchronized int generateMsgId(String conversationId) {
+    SequenceGenerator counter = mongoOperations.findAndModify(query(where("conversationId").is(conversationId)),
         new Update().inc("sequence", 1), options().returnNew(true).upsert(true),
         SequenceGenerator.class);
     if (Objects.isNull(counter)) {
       mongoOperations.insert(
-          SequenceGenerator.builder().chatId(chatId).sequence(1).build());
+          SequenceGenerator.builder().conversationId(conversationId).sequence(1).build());
       return 1;
     }
     return counter.getSequence();

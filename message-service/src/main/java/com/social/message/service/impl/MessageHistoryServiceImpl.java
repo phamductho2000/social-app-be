@@ -21,6 +21,7 @@ import com.social.message.repo.MessageHistoryRepository;
 import com.social.message.service.EditHistoryService;
 import com.social.message.service.MessageHistoryService;
 import com.social.message.service.ReactionHistoryService;
+import com.social.message.service.SequenceGeneratorService;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -62,20 +63,26 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
 
   private final EditHistoryService editHistoryService;
 
+  private final SequenceGeneratorService generatorService;
+
   @Override
   public MessageResDTO create(SendMessageDto request) throws ChatServiceException {
     log.info("create request: {}", request);
-    if (Objects.nonNull(request)) {
-      MessageHistory history = modelMapper.map(request, MessageHistory.class);
-      history.setConversationId(request.getConversationId());
-      history.setStatus(MessageStatus.SENT);
-      history.setCreatedAt(Instant.now());
-      history.setSentAt(Instant.now());
+    if (Objects.isNull(request) ||
+        !StringUtils.hasText(request.getClientMsgId()) ||
+        !StringUtils.hasText(request.getConversationId())) {
+      throw new ChatServiceException("MessageService: invalid payload", "INVALID_PAYLOAD");
+    }
+    int msgId = generatorService.generateMsgId(request.getConversationId());
+    MessageHistory history = modelMapper.map(request, MessageHistory.class);
+    history.setMsgId(msgId);
+    history.setConversationId(request.getConversationId());
+    history.setStatus(MessageStatus.SENT);
+    history.setCreatedAt(Instant.now());
+    history.setSentAt(Instant.now());
 //            history.setCreatedBy(request.getUserName());
 //            history.setUpdatedBy(request.getUserName());
-      return modelMapper.map(messageHistoryRepository.save(history), MessageResDTO.class);
-    }
-    throw new ChatServiceException("MessageService: Empty payload", "EMPTY_PAYLOAD");
+    return modelMapper.map(messageHistoryRepository.save(history), MessageResDTO.class);
   }
 
   @Override
@@ -142,8 +149,9 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
         !StringUtils.hasText(request.getConversationId())) {
       throw new ChatServiceException("MessageService: invalid payload", "INVALID_PAYLOAD");
     }
-
+    int msgId = generatorService.generateMsgId(request.getConversationId());
     MessageHistory history = modelMapper.map(request, MessageHistory.class);
+    history.setMsgId(msgId);
     history.setConversationId(request.getConversationId());
     history.setStatus(MessageStatus.SENT);
     history.setCreatedAt(Instant.now());
@@ -155,9 +163,9 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
   @Override
   public MessageResDTO pin(PinMessageDto request) throws ChatServiceException {
     log.info("pin request: {}", request);
-    if (Objects.isNull(request) || Objects.isNull(request.getMsgId())
-        || !StringUtils.hasText(request.getConversationId())
-    ) {
+    if (Objects.isNull(request) ||
+        Objects.isNull(request.getMsgId()) ||
+        !StringUtils.hasText(request.getConversationId())) {
       throw new ChatServiceException("MessageService: invalid payload", "INVALID_PAYLOAD");
     }
     MessageHistory exist = messageHistoryRepository.findFirstByMsgIdAndConversationId(
@@ -169,6 +177,13 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
     exist.setUpdatedAt(Instant.now());
 
     messageHistoryRepository.save(exist);
+
+    int msgId = generatorService.generateMsgId(request.getConversationId());
+    MessageHistory create = MessageHistory.builder()
+        .msgId(msgId)
+        .build();
+
+    messageHistoryRepository.save(create);
 
     return MessageResDTO.builder()
         .msgId(request.getMsgId())

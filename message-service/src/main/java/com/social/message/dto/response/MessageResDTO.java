@@ -1,12 +1,11 @@
 package com.social.message.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.social.message.constant.MessageStatus;
 import com.social.message.constant.MessageType;
-import com.social.message.domain.Attachment;
-import com.social.message.domain.Mention;
-import com.social.message.domain.Reply;
+import com.social.message.domain.embedded.Attachment;
+import com.social.message.domain.embedded.Mention;
+import com.social.message.domain.embedded.Reply;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,16 +1,13 @@
 package com.social.websocket.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.social.websocket.dto.request.ChatEvent;
 import com.social.websocket.service.ChatWebSocketService;
-import com.social.websocket.service.RedisConversationService;
+import com.social.websocket.service.RedisUserConversationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -24,7 +21,7 @@ public class ChatController {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final RedisConversationService redisConversationService;
+    private final RedisUserConversationService redisUserConversationService;
 
     @MessageMapping("/request-online-status")
     public void handleOnlineStatusRequest(String message, SimpMessageHeaderAccessor headerAccessor) {
@@ -36,13 +33,13 @@ public class ChatController {
     @MessageMapping("/connect-conversation/{conversationId}")
     public void connectConversation(@DestinationVariable String conversationId, Principal principal) {
         String userId = principal.getName();
-        redisConversationService.add(conversationId, userId);
+        redisUserConversationService.add(conversationId, userId);
     }
 
     @MessageMapping("/disconnect-conversation/{conversationId}")
     public void disconnectConversation(@DestinationVariable String conversationId, Principal principal) {
         String userId = principal.getName();
-        redisConversationService.remove(conversationId, userId);
+        redisUserConversationService.delete(conversationId, userId);
     }
 
     @MessageMapping("/chat/message/send")

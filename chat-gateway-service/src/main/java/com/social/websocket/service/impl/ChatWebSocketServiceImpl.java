@@ -6,7 +6,7 @@ import static com.social.websocket.constant.AppConstant.TOPIC_LISTEN_MESSAGE;
 import com.social.websocket.constant.MessageEvent;
 import com.social.websocket.dto.request.ChatEvent;
 import com.social.websocket.service.ChatWebSocketService;
-import com.social.websocket.service.RedisConversationService;
+import com.social.websocket.service.RedisUserConversationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -20,7 +20,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
   private final KafkaTemplate<String, Object> kafkaTemplate;
 
-  private final RedisConversationService redisConversationService;
+  private final RedisUserConversationService redisUserConversationService;
 
   @Override
   public void sendMessage(ChatEvent<?> chatEvent) {
@@ -37,8 +37,8 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
   public void sendMessageEventToClient(String conversationId, Object payload) {
     messagingTemplate.convertAndSend(TOPIC_LISTEN_MESSAGE + conversationId, payload);
 
-    redisConversationService.getUserIds(conversationId).forEach(
-        userId -> messagingTemplate.convertAndSendToUser(userId, TOPIC_LISTEN_CHANGE_CONVERSATION,
+    redisUserConversationService.getAll(conversationId).values().forEach(
+        r -> messagingTemplate.convertAndSendToUser(r.getUserId(), TOPIC_LISTEN_CHANGE_CONVERSATION,
             payload));
   }
 }
