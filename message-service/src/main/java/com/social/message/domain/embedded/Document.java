@@ -1,5 +1,6 @@
 package com.social.message.domain.embedded;
 
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Document {
-    private String document;
-    private String video;
-    private String media;
-    private String text;
-    private String action;
+    private String id;
+    private String fileName;
+    private String mimeType;
+    private Long size;
+    private Instant date;
 }

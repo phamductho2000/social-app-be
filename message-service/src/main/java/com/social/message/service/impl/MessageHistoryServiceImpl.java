@@ -131,7 +131,7 @@ public class MessageHistoryServiceImpl implements MessageHistoryService {
 
     exist.setType(request.getType());
     exist.setContent(request.getContent());
-    exist.setAttachments(request.getAttachments());
+//    exist.setAttachments(request.getAttachments());
     exist.setMentions(request.getMentions());
     exist.setEdited(true);
     exist.setUpdatedAt(Instant.now());

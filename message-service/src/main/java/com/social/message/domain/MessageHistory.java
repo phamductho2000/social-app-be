@@ -36,11 +36,11 @@ public class MessageHistory extends BaseDomain {
     private Content content;
     private MessageType type;
     private MessageStatus status;
-    private List<Attachment> attachments;
     private Map<String, Long> summaryReaction;
     private List<Mention> mentions;
     private Reply reply;
     private boolean isEdited;
     private boolean isPinned;
+    private String groupId;
     private Instant sentAt;
 }

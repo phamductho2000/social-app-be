@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class Photo {
     private String id;
     private Instant date;
-    private String media;
-    private String text;
-    private String action;
+    private Long size;
+    private String mimeType;
+    private String fileName;
 }

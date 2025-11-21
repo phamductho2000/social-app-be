@@ -8,9 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Text {
-    private String document;
-    private String video;
-    private String media;
     private String text;
-    private String action;
 }

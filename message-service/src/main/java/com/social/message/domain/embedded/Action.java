@@ -1,5 +1,6 @@
 package com.social.message.domain.embedded;
 
+import com.social.message.constant.MessageActionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Action {
-    private String document;
-    private String video;
-    private String media;
-    private String text;
-    private String action;
+    private MessageActionType type;
 }
