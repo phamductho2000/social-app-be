@@ -1,4 +1,4 @@
-package com.social.message.domain;
+package com.social.message.domain.embedded;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

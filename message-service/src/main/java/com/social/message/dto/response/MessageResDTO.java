@@ -1,11 +1,13 @@
 package com.social.message.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.social.message.constant.MessageStatus;
 import com.social.message.constant.MessageType;
-import com.social.message.domain.Attachment;
-import com.social.message.domain.Mention;
-import com.social.message.domain.Reply;
+import com.social.message.domain.embedded.Attachment;
+import com.social.message.domain.embedded.Mention;
+import com.social.message.domain.embedded.Reply;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,11 +18,13 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MessageResDTO {
     private String id;
     private Integer msgId;
     private String clientMsgId;
-    private String chatId;
+    private String conversationId;
     private String senderId;
     private String content;
     private MessageType type;

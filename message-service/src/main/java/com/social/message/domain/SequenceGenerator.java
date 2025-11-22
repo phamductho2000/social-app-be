@@ -19,6 +19,6 @@ public class SequenceGenerator {
   @Id
   private String id;
   private Integer sequence;
-  private String chatId;
+  private String conversationId;
 
 }

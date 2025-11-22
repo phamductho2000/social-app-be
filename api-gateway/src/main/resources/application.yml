@@ -31,13 +31,13 @@ spring:
           predicates:
             - Path=/api/user/**
 
-        - id: conversation-service
-          uri: lb://conversation-service
+        - id: chat-service
+          uri: lb://chat-service
           predicates:
             - Path=/api/conversation/**
 
-        - id: chat-websocket-service
-          uri: lb://chat-websocket-service
+        - id: chat-gateway-service
+          uri: lb://chat-gateway-service
           predicates:
             - Path=/ws/**
           filters:

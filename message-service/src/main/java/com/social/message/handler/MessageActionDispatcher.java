@@ -2,6 +2,7 @@ package com.social.message.handler;
 
 import com.social.message.constant.MessageEvent;
 import com.social.message.dto.ChatEvent;
+import com.social.message.exception.ChatServiceException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,10 +23,11 @@ public class MessageActionDispatcher {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void dispatch(ChatEvent<T> event) {
+    public <T> Object dispatch(ChatEvent<T> event) throws ChatServiceException {
         MessageActionHandler<T> handler = (MessageActionHandler<T>) handlerMap.get(event.getEvent());
         if (handler != null) {
-            handler.handle(event.getPayload(), event.getConversationId());
+            return handler.handle(event.getPayload(), event.getConversationId());
         }
+        return null;
     }
 }

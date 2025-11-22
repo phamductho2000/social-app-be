@@ -14,7 +14,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@RedisHash("WS:SESSION")
+@RedisHash("chat:session")
 public class RedisSessionInfo implements Serializable {
     @Id
     private String sessionId;

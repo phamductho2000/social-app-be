@@ -1,5 +1,5 @@
 package com.social.message.service;
 
 public interface SequenceGeneratorService {
-  int generateMsgId(String chatId);
+  int generateMsgId(String conversationId);
 }
